@@ -54,6 +54,7 @@ const Index = () => {
             Launch Dashboard
             <ArrowRight size={18} />
           </a>
+        </div>
       </div>
 
       {/* Architecture Section */}
