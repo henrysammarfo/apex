@@ -111,7 +111,18 @@ export function DashboardSidebar() {
       </SidebarContent>
 
       <SidebarFooter>
+        {user && !collapsed && (
+          <div className="px-4 py-2 mb-1">
+            <p className="font-inter text-xs text-muted-foreground truncate">{user.email}</p>
+          </div>
+        )}
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton onClick={handleLogout} className="hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors">
+              <LogOut className="mr-2 h-4 w-4" />
+              {!collapsed && <span>Log Out</span>}
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
               <NavLink to="/" className="hover:bg-sidebar-accent/50 text-muted-foreground">
