@@ -4,6 +4,7 @@ import HeroVideo from '@/components/HeroVideo';
 import LiquidGlassCard from '@/components/LiquidGlassCard';
 import CentralGlow from '@/components/CentralGlow';
 import GridLines from '@/components/GridLines';
+import ArchitectureSection from '@/components/ArchitectureSection';
 
 const Index = () => {
   return (
@@ -55,6 +56,9 @@ const Index = () => {
           </a>
         </div>
       </div>
+
+      {/* Architecture Section */}
+      <ArchitectureSection />
     </div>
   );
 };
