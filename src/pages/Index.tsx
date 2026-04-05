@@ -1,4 +1,5 @@
 import { ArrowRight } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Navbar from '@/components/Navbar';
 import HeroVideo from '@/components/HeroVideo';
 import LiquidGlassCard from '@/components/LiquidGlassCard';
@@ -48,13 +49,13 @@ const Index = () => {
               AI agents that monitor Chainlink price feeds, reason about risk, rebalance on-chain positions, and settle payments through HSP — with no human in the loop after setup.
             </p>
 
-            <a
-              href="#agents"
+            <Link
+              to="/dashboard"
               className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-3.5 font-inter font-bold text-sm uppercase tracking-wide hover:opacity-90 transition-opacity"
             >
               Launch Dashboard
               <ArrowRight size={18} />
-            </a>
+            </Link>
           </div>
         </div>
 
