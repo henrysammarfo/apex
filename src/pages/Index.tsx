@@ -7,6 +7,8 @@ import GridLines from '@/components/GridLines';
 import AgentLayersSection from '@/components/AgentLayersSection';
 import ArchitectureSection from '@/components/ArchitectureSection';
 import TokenomicsSection from '@/components/TokenomicsSection';
+import Footer from '@/components/Footer';
+import ScrollToTop from '@/components/ScrollToTop';
 
 const Index = () => {
   return (
@@ -78,6 +80,12 @@ const Index = () => {
 
       {/* ── TOKENOMICS & REVENUE ── */}
       <TokenomicsSection />
+
+      {/* ── FOOTER ── */}
+      <Footer />
+
+      {/* Scroll to Top */}
+      <ScrollToTop />
     </div>
   );
 };

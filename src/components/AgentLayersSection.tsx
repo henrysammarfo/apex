@@ -1,9 +1,13 @@
 import { motion } from 'framer-motion';
-import { Monitor, Brain, Zap, CreditCard } from 'lucide-react';
 
 const agents = [
   {
-    icon: Monitor,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <circle cx="12" cy="12" r="3" />
+        <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
     layer: '01',
     title: 'Monitor Agent',
     subtitle: 'Chainlink Oracles',
@@ -15,7 +19,17 @@ const agents = [
     ],
   },
   {
-    icon: Brain,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <path d="M12 2a4 4 0 0 1 4 4c0 1.95-1.4 3.58-3.25 3.93" />
+        <path d="M8.25 9.93A4.001 4.001 0 0 1 12 2" />
+        <path d="M12 9v3l2 1" />
+        <circle cx="12" cy="18" r="4" />
+        <path d="M12 14v-1" />
+        <path d="M9 21.5 6 19" />
+        <path d="M15 21.5 18 19" />
+      </svg>
+    ),
     layer: '02',
     title: 'Decision Agent',
     subtitle: 'OpenAI Reasoning',
@@ -27,7 +41,11 @@ const agents = [
     ],
   },
   {
-    icon: Zap,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z" />
+      </svg>
+    ),
     layer: '03',
     title: 'Execution Agent',
     subtitle: 'HashKey Chain',
@@ -39,7 +57,12 @@ const agents = [
     ],
   },
   {
-    icon: CreditCard,
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <rect x="2" y="4" width="20" height="16" rx="2" />
+        <path d="M7 15h0M2 9.5h20" />
+      </svg>
+    ),
     layer: '04',
     title: 'Settlement Agent',
     subtitle: 'HSP + NexaID',
@@ -64,13 +87,11 @@ const cardVariants = {
 const AgentLayersSection = () => {
   return (
     <section id="agents" className="relative z-10 py-32 px-6 md:px-12 lg:px-24">
-      {/* Subtle glow behind section */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[400px] bg-cn-glow/5 rounded-full blur-[120px]" />
       </div>
 
       <div className="max-w-6xl mx-auto relative">
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -89,7 +110,6 @@ const AgentLayersSection = () => {
           </p>
         </motion.div>
 
-        {/* Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {agents.map((agent, i) => (
             <motion.div
@@ -101,16 +121,14 @@ const AgentLayersSection = () => {
               variants={cardVariants}
               className="liquid-glass rounded-2xl p-7 group hover:bg-foreground/[0.03] transition-all duration-500 relative overflow-hidden"
             >
-              {/* Layer number watermark */}
               <span className="absolute -right-2 -top-4 font-inter font-extrabold text-[120px] text-foreground/[0.03] leading-none select-none pointer-events-none">
                 {agent.layer}
               </span>
 
               <div className="relative z-10">
-                {/* Icon + Label */}
                 <div className="flex items-center gap-3 mb-5">
-                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-500">
-                    <agent.icon size={20} className="text-primary" />
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors duration-500 text-primary">
+                    {agent.icon}
                   </div>
                   <div>
                     <span className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest block">
@@ -122,17 +140,14 @@ const AgentLayersSection = () => {
                   </div>
                 </div>
 
-                {/* Title */}
                 <h3 className="font-inter font-bold text-foreground text-[20px] mb-3">
                   {agent.title}
                 </h3>
 
-                {/* Description */}
                 <p className="font-inter text-[13px] text-muted-foreground leading-relaxed mb-6">
                   {agent.description}
                 </p>
 
-                {/* Stats */}
                 <div className="flex gap-6">
                   {agent.stats.map((stat) => (
                     <div key={stat.label}>

@@ -1,11 +1,54 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, Users, DollarSign, Globe, ArrowRight, Check } from 'lucide-react';
+import { ArrowRight, Check } from 'lucide-react';
 
 const marketStats = [
-  { icon: TrendingUp, value: '$14B+', label: 'Tokenized RWA Market', sub: '66% YoY growth' },
-  { icon: Users, value: '870K+', label: 'HSK Wallet Addresses', sub: 'Growing ecosystem' },
-  { icon: DollarSign, value: '$50M', label: 'Atlas Grant Pool', sub: 'Ecosystem funding' },
-  { icon: Globe, value: '0', label: 'Competitors on HSK', sub: 'First-mover advantage' },
+  {
+    value: '$14B+',
+    label: 'Tokenized RWA Market',
+    sub: '66% YoY growth',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+        <polyline points="16 7 22 7 22 13" />
+      </svg>
+    ),
+  },
+  {
+    value: '870K+',
+    label: 'HSK Wallet Addresses',
+    sub: 'Growing ecosystem',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+        <circle cx="9" cy="7" r="4" />
+        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+      </svg>
+    ),
+  },
+  {
+    value: '$50M',
+    label: 'Atlas Grant Pool',
+    sub: 'Ecosystem funding',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <line x1="12" y1="1" x2="12" y2="23" />
+        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+      </svg>
+    ),
+  },
+  {
+    value: '0',
+    label: 'Competitors on HSK',
+    sub: 'First-mover advantage',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5">
+        <circle cx="12" cy="12" r="10" />
+        <line x1="2" y1="12" x2="22" y2="12" />
+        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+      </svg>
+    ),
+  },
 ];
 
 const tiers = [
@@ -70,7 +113,6 @@ const fadeUp = {
 const TokenomicsSection = () => {
   return (
     <section id="ecosystem" className="relative z-10 py-32 px-6 md:px-12 lg:px-24">
-      {/* Background glow */}
       <div className="absolute inset-0 pointer-events-none">
         <div className="absolute bottom-0 left-1/4 w-[600px] h-[300px] bg-cn-glow/4 rounded-full blur-[100px]" />
       </div>
@@ -103,8 +145,8 @@ const TokenomicsSection = () => {
               variants={fadeUp}
               className="liquid-glass rounded-xl p-6 text-center group hover:bg-foreground/[0.03] transition-all duration-500"
             >
-              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors duration-500">
-                <stat.icon size={20} className="text-primary" />
+              <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4 group-hover:bg-primary/20 transition-colors duration-500 text-primary">
+                {stat.icon}
               </div>
               <p className="font-inter font-extrabold text-foreground text-[28px] md:text-[36px] leading-none mb-1">
                 {stat.value}
