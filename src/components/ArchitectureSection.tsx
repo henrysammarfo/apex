@@ -1,4 +1,23 @@
 import { ArrowDown, ExternalLink } from 'lucide-react';
+import { motion } from 'framer-motion';
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: (i: number) => ({
+    opacity: 1,
+    y: 0,
+    transition: { delay: i * 0.12, duration: 0.5, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  }),
+};
+
+const integrationVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: (i: number) => ({
+    opacity: 1,
+    scale: 1,
+    transition: { delay: i * 0.1, duration: 0.4, ease: [0.25, 0.46, 0.45, 0.94] as const },
+  }),
+};
 
 const layers = [
   {
@@ -106,7 +125,13 @@ const integrations = [
 const ArchitectureSection = () => {
   return (
     <section id="architecture" className="relative z-10 bg-background py-24 px-6 md:px-12 lg:px-24">
-      <div className="max-w-6xl mx-auto mb-20">
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-100px' }}
+        transition={{ duration: 0.6 }}
+        className="max-w-6xl mx-auto mb-20"
+      >
         <p className="font-jakarta font-bold text-[11px] uppercase tracking-[0.2em] text-primary mb-4">
           System Architecture
         </p>
@@ -116,13 +141,21 @@ const ArchitectureSection = () => {
         <p className="font-inter text-[14px] text-muted-foreground max-w-[600px] leading-relaxed">
           Each layer operates independently — monitoring, reasoning, executing, and settling — with no human in the loop after initial configuration.
         </p>
-      </div>
+      </motion.div>
 
       {/* Agent Pipeline */}
       <div className="max-w-4xl mx-auto mb-24">
         <div className="flex flex-col gap-0">
           {layers.map((layer, i) => (
-            <div key={layer.label} className="flex flex-col items-center">
+            <motion.div
+              key={layer.label}
+              custom={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-60px' }}
+              variants={cardVariants}
+              className="flex flex-col items-center"
+            >
               <div className="liquid-glass rounded-xl p-6 w-full flex items-start gap-5 group hover:bg-foreground/[0.02] transition-colors">
                 <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
                   {layer.icon}
@@ -143,20 +176,31 @@ const ArchitectureSection = () => {
                   <ArrowDown size={14} className="text-primary/50" />
                 </div>
               )}
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
 
       {/* Integration Grid */}
       <div className="max-w-6xl mx-auto">
-        <p className="font-jakarta font-bold text-[11px] uppercase tracking-[0.2em] text-primary mb-8">
+        <motion.p
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.4 }}
+          className="font-jakarta font-bold text-[11px] uppercase tracking-[0.2em] text-primary mb-8"
+        >
           Ecosystem Integrations
-        </p>
+        </motion.p>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {integrations.map((item) => (
-            <div
+          {integrations.map((item, i) => (
+            <motion.div
               key={item.name}
+              custom={i}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: '-40px' }}
+              variants={integrationVariants}
               className="liquid-glass rounded-xl p-5 flex flex-col justify-between min-h-[180px] group hover:bg-foreground/[0.02] transition-colors"
             >
               <div>
@@ -172,7 +216,7 @@ const ArchitectureSection = () => {
                 </span>
               </div>
               <p className="font-inter text-[12px] text-muted-foreground leading-relaxed">{item.desc}</p>
-            </div>
+            </motion.div>
           ))}
         </div>
       </div>
