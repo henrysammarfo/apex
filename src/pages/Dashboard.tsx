@@ -1,5 +1,6 @@
-import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
+import DashboardHeader from '@/components/DashboardHeader';
 import { motion } from 'framer-motion';
 import PerformanceChart from '@/components/PerformanceChart';
 import {
@@ -55,20 +56,7 @@ const Dashboard = () => {
         <DashboardSidebar />
 
         <div className="flex-1 flex flex-col min-w-0">
-          {/* Header */}
-          <header className="h-14 flex items-center justify-between border-b border-border px-4 shrink-0">
-            <div className="flex items-center gap-3">
-              <SidebarTrigger className="text-muted-foreground" />
-              <div className="h-5 w-px bg-border" />
-              <h1 className="font-inter font-bold text-foreground text-sm">Portfolio Overview</h1>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="flex items-center gap-1.5 text-[11px] font-inter text-primary bg-primary/10 rounded-full px-3 py-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                Agents Active
-              </span>
-            </div>
-          </header>
+          <DashboardHeader title="Portfolio Overview" />
 
           {/* Dashboard Content */}
           <main className="flex-1 overflow-y-auto p-6">
