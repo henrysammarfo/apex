@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 
-const NAV_LINKS = ['PROJECTS', 'BLOG', 'ABOUT', 'RESUME'];
+const NAV_LINKS = ['AGENTS', 'ARCHITECTURE', 'ECOSYSTEM', 'DOCS'];
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
@@ -10,7 +10,7 @@ const Navbar = () => {
     <header className="absolute top-0 left-0 right-0 z-50 px-6 md:px-12 py-6 flex items-center justify-between">
       {/* Logo */}
       <a href="/" className="font-inter text-foreground text-xl font-bold tracking-tight">
-        CodeNest
+        APEX
       </a>
 
       {/* Desktop Nav */}
