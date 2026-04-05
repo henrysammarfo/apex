@@ -1,6 +1,7 @@
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import { motion } from 'framer-motion';
+import PerformanceChart from '@/components/PerformanceChart';
 import {
   TrendingUp,
   TrendingDown,
@@ -104,6 +105,15 @@ const Dashboard = () => {
                   </motion.div>
                 ))}
               </div>
+
+              {/* Performance Chart */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.25, duration: 0.5 }}
+              >
+                <PerformanceChart />
+              </motion.div>
 
               {/* Main Grid: Holdings + Activity */}
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
