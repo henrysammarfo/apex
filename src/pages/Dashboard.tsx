@@ -57,7 +57,12 @@ const allocationColors = [
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { showOnboarding, completeOnboarding } = useOnboarding();
   return (
+    <>
+    <AnimatePresence>
+      {showOnboarding && <OnboardingTour onComplete={completeOnboarding} />}
+    </AnimatePresence>
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
         <DashboardSidebar />
