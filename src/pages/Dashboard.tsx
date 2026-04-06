@@ -14,6 +14,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
+  Plus,
+  Minus,
+  Settings,
+  Wallet,
 } from 'lucide-react';
 import { AgentIcon } from '@/components/icons/DashboardIcons';
 import { Button } from '@/components/ui/button';
