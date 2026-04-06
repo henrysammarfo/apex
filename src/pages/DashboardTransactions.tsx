@@ -33,8 +33,7 @@ const Transactions = () => {
     a.click();
     URL.revokeObjectURL(url);
   };
-
-
+  const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
