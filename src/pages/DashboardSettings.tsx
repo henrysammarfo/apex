@@ -68,12 +68,34 @@ const initialGroups: SettingGroup[] = [
   },
 ];
 
+interface TelegramPref {
+  label: string;
+  desc: string;
+  enabled: boolean;
+}
+
+const defaultTelegramPrefs: TelegramPref[] = [
+  { label: 'Price Drift Detected', desc: 'Monitor Agent detects allocation drift beyond threshold', enabled: true },
+  { label: 'Rebalance Executed', desc: 'Decision Agent approves and executes a portfolio rebalance', enabled: true },
+  { label: 'Transaction Confirmed', desc: 'Execution Agent confirms on-chain TX settlement', enabled: true },
+  { label: 'Yield Disbursement', desc: 'Settlement Agent completes yield distribution via HSP', enabled: false },
+  { label: 'Risk Alert', desc: 'Any risk parameter breach (loss limit, exposure cap)', enabled: true },
+  { label: 'Agent Status Change', desc: 'An agent goes offline or encounters an error', enabled: false },
+];
+
 const DashboardSettings = () => {
   const [groups, setGroups] = useState(initialGroups);
   const [editModal, setEditModal] = useState<{ groupIdx: number; settingIdx: number } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saved, setSaved] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const [telegramPrefs, setTelegramPrefs] = useState(defaultTelegramPrefs);
+  const [telegramEnabled, setTelegramEnabled] = useState(true);
+  const [telegramChatId, setTelegramChatId] = useState('');
+
+  const toggleTelegramPref = (index: number) => {
+    setTelegramPrefs(prev => prev.map((p, i) => i === index ? { ...p, enabled: !p.enabled } : p));
+  };
 
   const openEdit = (gi: number, si: number) => {
     setEditValue(groups[gi].settings[si].value);

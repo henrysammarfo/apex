@@ -166,15 +166,43 @@ const DashboardProfile = () => {
                         Disconnect
                       </Button>
                     </div>
+
+                    {/* Balance & Network Info */}
+                    <div className="border-t border-border pt-3 grid grid-cols-2 gap-4">
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest mb-1">Balance</p>
+                        <p className="font-inter text-lg font-bold text-foreground">12,450 <span className="text-[11px] text-muted-foreground font-normal">USDC</span></p>
+                        <p className="font-inter text-[11px] text-muted-foreground">≈ $12,450.00</p>
+                      </div>
+                      <div className="bg-secondary/30 rounded-lg p-3">
+                        <p className="font-inter text-[10px] text-muted-foreground uppercase tracking-widest mb-1">HSK Balance</p>
+                        <p className="font-inter text-lg font-bold text-foreground">5,200 <span className="text-[11px] text-muted-foreground font-normal">HSK</span></p>
+                        <p className="font-inter text-[11px] text-muted-foreground">≈ $2,340.00</p>
+                      </div>
+                    </div>
+
                     <div className="border-t border-border pt-3">
                       <div className="flex items-center justify-between">
                         <div>
                           <p className="font-inter text-sm text-foreground">Network</p>
-                          <p className="font-inter text-xs text-muted-foreground">HashKey Chain (HSK L2)</p>
+                          <p className="font-inter text-xs text-muted-foreground">HashKey Chain Testnet</p>
                         </div>
-                        <span className="inline-flex items-center gap-1 text-[10px] font-inter text-primary bg-primary/10 rounded-full px-2 py-0.5">
-                          <CheckCircle2 className="w-3 h-3" /> Active
-                        </span>
+                        <div className="text-right">
+                          <span className="inline-flex items-center gap-1 text-[10px] font-inter text-primary bg-primary/10 rounded-full px-2 py-0.5">
+                            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" /> Connected
+                          </span>
+                          <p className="font-inter text-[10px] text-muted-foreground font-mono mt-1">Chain ID: 133</p>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="border-t border-border pt-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <p className="font-inter text-sm text-foreground">Gas Status</p>
+                          <p className="font-inter text-xs text-muted-foreground">Current gas price on HashKey L2</p>
+                        </div>
+                        <span className="font-inter text-[12px] font-mono text-primary bg-primary/10 rounded-md px-2 py-0.5">0.25 Gwei</span>
                       </div>
                     </div>
 
@@ -195,7 +223,7 @@ const DashboardProfile = () => {
                   </div>
                 ) : (
                   <div className="text-center py-4">
-                    <p className="font-inter text-[13px] text-muted-foreground mb-4">Link your wallet for on-chain access and transaction signing.</p>
+                    <p className="font-inter text-[13px] text-muted-foreground mb-4">Link your wallet for on-chain access and transaction signing on HashKey Chain (ID: 133).</p>
                     <Button onClick={handleConnectWallet} className="font-inter font-bold gap-2">
                       <Wallet className="w-4 h-4" /> Connect Wallet
                     </Button>
