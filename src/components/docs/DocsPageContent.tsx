@@ -1536,7 +1536,7 @@ print(f"Trades planned:  {len(report.trades)}")
 print(f"Expected drift:  {report.expected_drift_after:.2f}%")
 
 for trade in report.trades:
-    print(f"  {trade.action.upper()} {trade.amount} {trade.token} @ ${trade.price:.2f}")
+    print(f"  {trade.action.upper()} {trade.amount} {trade.token} @ \${trade.price:.2f}")
     print(f"    Slippage tolerance: {trade.slippage_tolerance:.1%}")
     print(f"    Estimated gas: {trade.estimated_gas} gwei")`} />
 
