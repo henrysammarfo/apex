@@ -547,6 +547,583 @@ await apex.settlement.configureAlerts('vault-123', {
   </>
 );
 
+/* ── Creating a Vault ── */
+const CreatingVaultContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      A Vault is a non-custodial smart contract on HashKey Chain that holds your diversified portfolio. This guide walks you through creating and configuring your first vault.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Prerequisites</h2>
+    <ul className="space-y-2 text-[13.5px] text-foreground/60 ml-1 mb-6">
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>A HashKey Chain-compatible wallet (MetaMask, WalletConnect, or native HashKey wallet)</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Completed NexaID KYC verification</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Sufficient HSK for gas fees (~0.01 HSK for vault deployment)</li>
+    </ul>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Step 1: Define Allocations</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Set target weights for each asset in your portfolio. APEX supports tokenized treasuries (tUSTB), real-estate funds (rREF), corporate bonds (cBOND), gold-backed tokens (gGOLD), and stablecoins (USDC).
+    </p>
+    <CodeBlock language="typescript" code={`import { ApexSDK } from '@apex/sdk';
+
+const apex = new ApexSDK({ apiKey: 'your-key', chain: 'hashkey-mainnet' });
+
+const vault = await apex.vault.create({
+  name: 'Institutional RWA Fund',
+  allocations: {
+    'tUSTB':  0.30,   // 30% — Tokenized US Treasuries
+    'rREF':   0.20,   // 20% — Real Estate Fund
+    'cBOND':  0.20,   // 20% — Corporate Bonds
+    'gGOLD':  0.10,   // 10% — Gold-backed token
+    'USDC':   0.20,   // 20% — Stablecoin reserve
+  },
+});
+
+console.log('Vault deployed at:', vault.contractAddress);`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Step 2: Set Risk Parameters</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Configure risk thresholds that govern how aggressively the agents manage your portfolio. These parameters are enforced on-chain and cannot be changed without your wallet signature.
+    </p>
+    <CodeBlock language="typescript" code={`await apex.vault.configure(vault.id, {
+  riskTolerance: 0.6,          // 0 = conservative, 1 = aggressive
+  maxDrawdown: 0.15,           // 15% max daily loss
+  rebalanceThreshold: 5,       // Trigger at 5% drift
+  rebalanceCooldown: 3600,     // 1 hour minimum between rebalances
+  maxSlippage: 50,             // 0.5% max slippage (basis points)
+});`} />
+
+    <InfoBanner>
+      Allocations must sum to exactly 1.0 (100%). The vault contract will reject deployment if weights don't add up.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Step 3: Deploy & Verify</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Once created, the vault smart contract is deployed to HashKey Chain. You can verify the deployment on the block explorer.
+    </p>
+    <CodeBlock language="typescript" code={`// Verify vault deployment
+const status = await apex.vault.status(vault.id);
+
+console.log('Contract:', status.contractAddress);
+console.log('Chain ID:', status.chainId);        // 133 (HashKey Chain)
+console.log('State:', status.state);              // 'awaiting_deposit'
+console.log('Allocations:', status.allocations);
+console.log('Risk params:', status.riskParams);`} />
+  </>
+);
+
+/* ── Risk Parameters ── */
+const RiskParametersContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      Risk parameters define the boundaries within which APEX agents operate. These are enforced on-chain and ensure your portfolio never exceeds your risk tolerance — even during extreme market conditions.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Parameter Reference</h2>
+    <div className="overflow-x-auto mb-6">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2.5 px-3 text-foreground/80 font-semibold">Parameter</th>
+            <th className="text-left py-2.5 px-3 text-foreground/80 font-semibold">Type</th>
+            <th className="text-left py-2.5 px-3 text-foreground/80 font-semibold">Range</th>
+            <th className="text-left py-2.5 px-3 text-foreground/80 font-semibold">Description</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2.5 px-3 font-mono">riskTolerance</td><td className="py-2.5 px-3">float</td><td className="py-2.5 px-3">0.0–1.0</td><td className="py-2.5 px-3">Overall aggressiveness of the Decision Agent</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2.5 px-3 font-mono">maxDrawdown</td><td className="py-2.5 px-3">float</td><td className="py-2.5 px-3">0.01–0.50</td><td className="py-2.5 px-3">Maximum allowed daily portfolio loss</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2.5 px-3 font-mono">rebalanceThreshold</td><td className="py-2.5 px-3">number</td><td className="py-2.5 px-3">1–20</td><td className="py-2.5 px-3">Portfolio drift percentage to trigger rebalance</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2.5 px-3 font-mono">rebalanceCooldown</td><td className="py-2.5 px-3">number</td><td className="py-2.5 px-3">300–86400</td><td className="py-2.5 px-3">Minimum seconds between rebalances</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2.5 px-3 font-mono">maxSlippage</td><td className="py-2.5 px-3">number</td><td className="py-2.5 px-3">10–500</td><td className="py-2.5 px-3">Max slippage in basis points</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2.5 px-3 font-mono">maxPositionSize</td><td className="py-2.5 px-3">float</td><td className="py-2.5 px-3">0.1–1.0</td><td className="py-2.5 px-3">Max single-asset weight</td></tr>
+          <tr><td className="py-2.5 px-3 font-mono">correlationLimit</td><td className="py-2.5 px-3">float</td><td className="py-2.5 px-3">0.0–1.0</td><td className="py-2.5 px-3">Max pairwise asset correlation</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Preset Profiles</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      APEX provides three built-in risk profiles for common use cases. You can also create custom configurations.
+    </p>
+    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-6">
+      {[
+        { name: 'Conservative', tolerance: '0.2', drawdown: '5%', threshold: '3%', desc: 'Capital preservation focus with minimal trading.' },
+        { name: 'Balanced', tolerance: '0.5', drawdown: '15%', threshold: '5%', desc: 'Moderate risk-return with regular rebalancing.' },
+        { name: 'Aggressive', tolerance: '0.8', drawdown: '30%', threshold: '8%', desc: 'Growth-oriented with higher volatility tolerance.' },
+      ].map(p => (
+        <div key={p.name} className="rounded-xl border border-border/40 bg-card/50 p-4">
+          <h4 className="font-bold text-[14px] text-foreground mb-2">{p.name}</h4>
+          <div className="space-y-1 text-[12px] text-foreground/60 mb-2">
+            <p>Tolerance: <span className="font-mono text-primary">{p.tolerance}</span></p>
+            <p>Max Drawdown: <span className="font-mono text-primary">{p.drawdown}</span></p>
+            <p>Drift Threshold: <span className="font-mono text-primary">{p.threshold}</span></p>
+          </div>
+          <p className="text-[12px] text-muted-foreground">{p.desc}</p>
+        </div>
+      ))}
+    </div>
+
+    <CodeBlock language="typescript" code={`// Apply a preset profile
+await apex.vault.applyPreset(vault.id, 'balanced');
+
+// Or customize individual parameters
+await apex.vault.updateRisk(vault.id, {
+  riskTolerance: 0.65,
+  maxDrawdown: 0.12,
+  rebalanceThreshold: 4,
+  maxPositionSize: 0.40,
+  correlationLimit: 0.75,
+});`} />
+
+    <InfoBanner>
+      Changing risk parameters requires a wallet signature and takes effect after the current rebalance cycle completes. There is a 24-hour cooldown on risk parameter changes to prevent manipulation.
+    </InfoBanner>
+  </>
+);
+
+/* ── Rebalancing ── */
+const RebalancingContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      Rebalancing is the core operation of APEX. When asset prices move and cause your portfolio to drift from target allocations, the agent pipeline automatically computes and executes trades to realign your holdings.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Rebalancing Pipeline</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Price Movement ──▶ Drift Detection ──▶ Trade Planning ──▶ Execution ──▶ Settlement
+                      (Monitor)         (Decision)       (Execution)   (Settlement)
+                         │                   │                │              │
+                    Poll every 30s    Risk validation    Gas + MEV     Compliance
+                    Chainlink feeds   Optimization       Private relay  HSP atomic`}</pre>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Drift Calculation Example</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Consider a vault with three assets. When ETH rises 20%, the portfolio drifts from target allocations:
+    </p>
+    <div className="overflow-x-auto mb-6">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Asset</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Target</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Current</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Drift</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">tUSTB</td><td className="py-2 px-3">40%</td><td className="py-2 px-3">35%</td><td className="py-2 px-3 text-primary">-5%</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">ETH</td><td className="py-2 px-3">35%</td><td className="py-2 px-3">43%</td><td className="py-2 px-3 text-primary">+8%</td></tr>
+          <tr><td className="py-2 px-3 font-mono">USDC</td><td className="py-2 px-3">25%</td><td className="py-2 px-3">22%</td><td className="py-2 px-3 text-primary">-3%</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Total drift = |5| + |8| + |3| = 16%. If the rebalance threshold is 5%, this triggers a rebalance: sell ETH, buy tUSTB and USDC.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Rebalance History</h2>
+    <CodeBlock language="typescript" code={`// Fetch rebalance history
+const history = await apex.vault.rebalanceHistory('vault-123', {
+  limit: 10,
+  from: '2026-01-01',
+});
+
+history.forEach(event => {
+  console.log(\`[\${event.timestamp}] Drift: \${event.driftBefore}% → \${event.driftAfter}%\`);
+  console.log(\`  Trades: \${event.trades.length}, Gas: \${event.gasCostUSD}\`);
+  event.trades.forEach(t => {
+    console.log(\`    \${t.action} \${t.amount} \${t.token} @ $\${t.price}\`);
+  });
+});`} />
+
+    <InfoBanner>
+      APEX uses a "trade-only-what's-needed" approach — it computes the minimum set of trades to bring the portfolio within threshold, minimizing gas costs and market impact.
+    </InfoBanner>
+  </>
+);
+
+/* ── Deposits & Withdrawals ── */
+const DepositsWithdrawalsContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      APEX supports multi-asset deposits and flexible withdrawal strategies. Funds are managed through non-custodial vault contracts — only your wallet can initiate withdrawals.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Deposits</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Deposit USDC, HSK, or ETH into your vault. Deposits are automatically allocated according to your target weights using the auto-allocation preview.
+    </p>
+    <CodeBlock language="typescript" code={`// Deposit with auto-allocation preview
+const preview = await apex.vault.previewDeposit({
+  vaultId: 'vault-123',
+  amount: '10000',
+  token: 'USDC',
+});
+
+console.log('Allocation preview:');
+preview.allocations.forEach(a => {
+  console.log(\`  \${a.token}: $\${a.amountUSD} (\${a.weight * 100}%)\`);
+});
+// tUSTB: $3,000 (30%)
+// rREF:  $2,000 (20%)
+// cBOND: $2,000 (20%)
+// gGOLD: $1,000 (10%)
+// USDC:  $2,000 (20%)
+
+// Confirm deposit
+const receipt = await apex.vault.deposit({
+  vaultId: 'vault-123',
+  amount: '10000',
+  token: 'USDC',
+});
+
+console.log('Deposit tx:', receipt.txHash);`} />
+
+    <InfoBanner>
+      NexaID verification is required before your first deposit. Subsequent deposits from the same verified wallet are processed immediately.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Withdrawals</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      APEX supports two withdrawal modes, each optimized for different use cases:
+    </p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+      <div className="rounded-xl border border-border/40 bg-card/50 p-5">
+        <h4 className="font-bold text-[14px] text-foreground mb-2">Yield Only</h4>
+        <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+          Withdraw only accumulated yield while preserving your principal. Ideal for income-focused strategies. Available once yield exceeds the minimum withdrawal threshold.
+        </p>
+      </div>
+      <div className="rounded-xl border border-border/40 bg-card/50 p-5">
+        <h4 className="font-bold text-[14px] text-foreground mb-2">Partial Withdrawal</h4>
+        <p className="text-[12.5px] text-muted-foreground leading-relaxed">
+          Withdraw a specific dollar amount from your vault. Agents proportionally liquidate across all assets to maintain target allocation ratios.
+        </p>
+      </div>
+    </div>
+    <CodeBlock language="typescript" code={`// Yield-only withdrawal
+const yieldWithdrawal = await apex.vault.withdraw({
+  vaultId: 'vault-123',
+  mode: 'yield-only',
+  destination: { type: 'wallet' },  // On-chain to your wallet
+});
+
+// Partial withdrawal to bank via HSP
+const bankWithdrawal = await apex.vault.withdraw({
+  vaultId: 'vault-123',
+  mode: 'partial',
+  amount: '5000',
+  destination: {
+    type: 'bank',
+    bankDetails: {
+      name: 'Acme Fund LLC',
+      iban: 'GB29NWBK60161331926819',
+      swift: 'NWBKGB2L',
+    },
+  },
+});
+
+console.log('Settlement via HSP:', bankWithdrawal.hspReceiptId);`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Destination Routing</h2>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Destination</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Settlement</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Time</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Fee</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3">On-chain wallet</td><td className="py-2 px-3">Direct transfer</td><td className="py-2 px-3">~30 seconds</td><td className="py-2 px-3">Gas only</td></tr>
+          <tr><td className="py-2 px-3">Bank (cross-border)</td><td className="py-2 px-3">HSP Protocol</td><td className="py-2 px-3">1–3 business days</td><td className="py-2 px-3">0.1% + gas</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </>
+);
+
+/* ── HashKey Chain ── */
+const HashKeyChainContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      APEX is built natively on HashKey Chain (Chain ID: 133), a high-performance EVM-compatible Layer 2 optimized for regulated digital assets and real-world asset tokenization.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Chain Details</h2>
+    <div className="overflow-x-auto mb-6">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Property</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Value</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">Chain ID</td><td className="py-2 px-3 font-mono">133</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">Native Token</td><td className="py-2 px-3 font-mono">HSK</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">Block Time</td><td className="py-2 px-3">~2 seconds</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">Consensus</td><td className="py-2 px-3">Optimistic Rollup</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">EVM Compatible</td><td className="py-2 px-3">Yes (Solidity ^0.8.x)</td></tr>
+          <tr><td className="py-2 px-3 font-semibold text-foreground/70">RPC Endpoint</td><td className="py-2 px-3 font-mono">https://rpc.hashkey.com</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Network Configuration</h2>
+    <CodeBlock language="typescript" code={`// Add HashKey Chain to MetaMask programmatically
+await window.ethereum.request({
+  method: 'wallet_addEthereumChain',
+  params: [{
+    chainId: '0x85',  // 133 in hex
+    chainName: 'HashKey Chain',
+    nativeCurrency: { name: 'HSK', symbol: 'HSK', decimals: 18 },
+    rpcUrls: ['https://rpc.hashkey.com'],
+    blockExplorerUrls: ['https://explorer.hashkey.com'],
+  }],
+});`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">APEX Contract Addresses</h2>
+    <CodeBlock language="bash" code={`# Mainnet (Chain ID 133)
+VaultFactory:    0x7A1B...3F9E
+AgentRegistry:   0x4C2D...8A1B
+HSPSettlement:   0x9E3F...2C4D
+NexaIDVerifier:  0x1B5A...7E3F
+
+# Testnet (Chain ID 13300)
+VaultFactory:    0xTEST...1234
+AgentRegistry:   0xTEST...5678`} />
+
+    <InfoBanner>
+      HashKey Chain's low gas costs (avg. ~$0.001 per transaction) make APEX rebalancing economically viable even for smaller portfolios.
+    </InfoBanner>
+  </>
+);
+
+/* ── Chainlink Feeds ── */
+const ChainlinkFeedsContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      APEX relies on Chainlink's decentralized oracle network for tamper-proof price data. The Monitor Agent reads these feeds to compute portfolio weights and detect drift.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Supported Price Feeds</h2>
+    <div className="overflow-x-auto mb-6">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Pair</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Feed Address</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Heartbeat</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Deviation</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">HSK/USD</td><td className="py-2 px-3 font-mono text-[11px]">0xABC...1234</td><td className="py-2 px-3">60s</td><td className="py-2 px-3">0.5%</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">tUSTB/USD</td><td className="py-2 px-3 font-mono text-[11px]">0xDEF...5678</td><td className="py-2 px-3">3600s</td><td className="py-2 px-3">0.1%</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">ETH/USD</td><td className="py-2 px-3 font-mono text-[11px]">0x123...ABCD</td><td className="py-2 px-3">60s</td><td className="py-2 px-3">0.5%</td></tr>
+          <tr><td className="py-2 px-3 font-mono">XAU/USD</td><td className="py-2 px-3 font-mono text-[11px]">0x456...EFGH</td><td className="py-2 px-3">3600s</td><td className="py-2 px-3">0.25%</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Reading Price Feeds</h2>
+    <CodeBlock language="solidity" code={`// Solidity — Read Chainlink price feed
+import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
+contract PriceConsumer {
+    AggregatorV3Interface internal priceFeed;
+
+    constructor(address feedAddress) {
+        priceFeed = AggregatorV3Interface(feedAddress);
+    }
+
+    function getLatestPrice() public view returns (int256) {
+        (
+            /* uint80 roundID */,
+            int256 price,
+            /* uint startedAt */,
+            uint timeStamp,
+            /* uint80 answeredInRound */
+        ) = priceFeed.latestRoundData();
+
+        // Stale price check
+        require(block.timestamp - timeStamp < 120, "Stale price");
+        return price;
+    }
+}`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">SDK Access</h2>
+    <CodeBlock language="typescript" code={`// Get all price feeds via the APEX SDK
+const feeds = await apex.chainlink.getAllFeeds();
+
+feeds.forEach(feed => {
+  console.log(\`\${feed.pair}: $\${feed.price} (updated \${feed.age}s ago)\`);
+});
+
+// Subscribe to price updates
+apex.chainlink.subscribe('HSK/USD', (update) => {
+  console.log(\`HSK price: $\${update.price} at round \${update.roundId}\`);
+});`} />
+
+    <InfoBanner>
+      APEX validates price freshness before every decision. If a Chainlink feed is stale (older than the configured <code className="font-mono text-[12px]">stalePriceWindow</code>), the Monitor Agent pauses and emits a warning alert.
+    </InfoBanner>
+  </>
+);
+
+/* ── NexaID KYC ── */
+const NexaIdKycContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      NexaID provides on-chain identity verification for APEX vaults. It ensures that all participants meet regulatory requirements before accessing RWA markets.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Verification Flow</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`User Wallet ──▶ NexaID Widget ──▶ Document Upload ──▶ Verification
+                                                         │
+                                               ┌────────┴────────┐
+                                           Approved          Rejected
+                                               │                 │
+                                      SBT Minted to        Retry with
+                                        Wallet            Different Docs`}</pre>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Integration</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      NexaID issues a Soulbound Token (SBT) to verified wallets. APEX vault contracts check for this token before allowing deposits or withdrawals.
+    </p>
+    <CodeBlock language="typescript" code={`// Check NexaID verification status
+const verification = await apex.nexaid.getStatus(walletAddress);
+
+console.log('KYC Status:', verification.status);    // 'verified' | 'pending' | 'expired'
+console.log('Level:', verification.level);           // 'basic' | 'accredited'
+console.log('Jurisdiction:', verification.country);  // 'US', 'HK', 'SG', etc.
+console.log('SBT Token:', verification.sbtTokenId);
+console.log('Expires:', verification.expiresAt);
+
+// Trigger verification flow in your app
+const session = await apex.nexaid.createSession({
+  walletAddress: '0xYOUR_WALLET',
+  redirectUrl: 'https://yourapp.com/kyc-callback',
+  level: 'accredited',  // Required for RWA access
+});
+
+// Redirect user to NexaID
+window.location.href = session.verificationUrl;`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Verification Levels</h2>
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+      <div className="rounded-xl border border-border/40 bg-card/50 p-5">
+        <h4 className="font-bold text-[14px] text-foreground mb-2">Basic KYC</h4>
+        <p className="text-[12.5px] text-muted-foreground leading-relaxed mb-2">ID document + liveness check. Grants access to crypto-only vaults and stablecoin deposits.</p>
+        <p className="text-[11px] text-primary font-mono">Processing: ~5 minutes</p>
+      </div>
+      <div className="rounded-xl border border-primary/30 bg-primary/[0.04] p-5">
+        <h4 className="font-bold text-[14px] text-foreground mb-2">Accredited Investor</h4>
+        <p className="text-[12.5px] text-muted-foreground leading-relaxed mb-2">Full KYC + income/asset verification. Required for RWA vaults (tUSTB, rREF, cBOND, gGOLD).</p>
+        <p className="text-[11px] text-primary font-mono">Processing: 1–3 business days</p>
+      </div>
+    </div>
+
+    <InfoBanner>
+      NexaID SBTs expire after 12 months. APEX agents will pause vault operations and notify you 30 days before expiration. Re-verification is a streamlined process.
+    </InfoBanner>
+  </>
+);
+
+/* ── HSP Protocol ── */
+const HspProtocolContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      HSP (HashKey Settlement Protocol) enables atomic delivery-vs-payment settlement for tokenized assets. APEX uses HSP for all RWA trade settlements and cross-border bank withdrawals.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">How HSP Works</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Trade Confirmed ──▶ HSP Escrow ──▶ Compliance Gate ──▶ Atomic Settlement
+                        │                │                    │
+                   Lock assets     NexaID check        Simultaneous:
+                   in escrow      Jurisdiction check    Asset transfer
+                                  Sanction screening    Payment release
+                                                        Receipt minted`}</pre>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Settlement Contract</h2>
+    <CodeBlock language="solidity" code={`// HSP Settlement Interface
+interface IHSPSettlement {
+    struct Receipt {
+        bytes32 id;
+        address buyer;
+        address seller;
+        address asset;
+        uint256 assetAmount;
+        uint256 paymentAmount;
+        uint256 settledAt;
+        bool compliant;
+    }
+
+    /// @notice Initiate atomic DvP settlement
+    function settle(
+        address buyer,
+        address seller,
+        address asset,
+        uint256 assetAmount,
+        address paymentToken,
+        uint256 paymentAmount
+    ) external returns (bytes32 receiptId);
+
+    /// @notice Query settlement receipt
+    function getReceipt(bytes32 receiptId)
+        external view returns (Receipt memory);
+
+    /// @notice Check if address is settlement-eligible
+    function isEligible(address party)
+        external view returns (bool);
+}`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Cross-Border Settlements</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      For bank withdrawals, HSP coordinates with licensed payment rails to convert on-chain assets to fiat and wire to the destination bank account.
+    </p>
+    <CodeBlock language="typescript" code={`// Initiate a cross-border settlement
+const settlement = await apex.hsp.initiate({
+  vaultId: 'vault-123',
+  amount: '50000',
+  token: 'USDC',
+  destination: {
+    type: 'bank_wire',
+    currency: 'USD',
+    bank: {
+      name: 'Acme Fund LLC',
+      iban: 'GB29NWBK60161331926819',
+      swift: 'NWBKGB2L',
+      country: 'GB',
+    },
+  },
+});
+
+console.log('HSP Receipt:', settlement.receiptId);
+console.log('Status:', settlement.status);            // 'processing'
+console.log('Est. arrival:', settlement.estimatedAt);  // '2026-04-09T14:00:00Z'
+
+// Track settlement progress
+const status = await apex.hsp.track(settlement.receiptId);
+console.log('Steps completed:', status.completedSteps);
+console.log('Current step:', status.currentStep);`} />
+
+    <InfoBanner>
+      HSP settlements are final and irreversible once the atomic swap completes. Cross-border wire transfers typically settle within 1–3 business days depending on the destination country.
+    </InfoBanner>
+  </>
+);
+
 /* ── Generic sub-page content ── */
 const GenericContent = ({ slug }: { slug: string }) => {
   const label = findLabelForSlug(slug) || slug;
