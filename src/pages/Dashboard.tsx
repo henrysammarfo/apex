@@ -190,7 +190,7 @@ const Dashboard = () => {
                   </div>
                   <div className="divide-y divide-border/50">
                     {agentLogs.map((log, i) => (
-                      <div key={i} className="px-5 py-3.5 hover:bg-foreground/[0.02] transition-colors">
+                      <div key={i} onClick={() => navigate('/dashboard/agents')} className="px-5 py-3.5 hover:bg-foreground/[0.04] transition-colors cursor-pointer">
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-inter text-[10px] uppercase tracking-widest font-bold ${
                             log.agent === 'Monitor' ? 'text-blue-400' :
