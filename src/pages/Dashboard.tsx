@@ -51,6 +51,7 @@ const allocationColors = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
