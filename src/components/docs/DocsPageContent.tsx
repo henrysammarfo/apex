@@ -753,7 +753,11 @@ export const DocsPageContent = ({ activeTab, activeSlug }: DocsPageContentProps)
       {activeSlug === 'overview' && <OverviewContent />}
       {activeSlug === 'core-concepts' && <CoreConceptsContent />}
       {activeSlug === 'pricing' && <PricingContent />}
-      {!['quick-start', 'overview', 'core-concepts', 'pricing'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
+      {activeSlug === 'monitor-agent' && <MonitorAgentContent />}
+      {activeSlug === 'decision-agent' && <DecisionAgentContent />}
+      {activeSlug === 'execution-agent' && <ExecutionAgentContent />}
+      {activeSlug === 'settlement-agent' && <SettlementAgentContent />}
+      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
 
       {/* Bottom Navigation */}
       <div className="border-t border-border/30 pt-8 mt-8 flex items-center justify-between">
