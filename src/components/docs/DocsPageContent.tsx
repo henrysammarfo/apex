@@ -1124,6 +1124,593 @@ console.log('Current step:', status.currentStep);`} />
   </>
 );
 
+/* ── REST API ── */
+const RestApiContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The APEX REST API provides programmatic access to all platform features. All requests are authenticated via Bearer token and return JSON responses.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Base URL & Authentication</h2>
+    <CodeBlock language="bash" code={`# Production
+https://api.apex.hashkey.com/v1
+
+# Testnet
+https://api-testnet.apex.hashkey.com/v1`} />
+    <CodeBlock language="bash" code={`# All requests require an Authorization header
+curl -X GET https://api.apex.hashkey.com/v1/vaults \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json"`} />
+
+    <InfoBanner>
+      API keys are scoped per vault or globally. Generate keys from the <strong>Dashboard → Settings → API Keys</strong> page. Never share your secret key — use publishable keys for client-side code.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Rate Limits</h2>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Plan</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Rate Limit</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Burst</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3">Free</td><td className="py-2 px-3">60 req/min</td><td className="py-2 px-3">10 req/s</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">Pro</td><td className="py-2 px-3">600 req/min</td><td className="py-2 px-3">50 req/s</td></tr>
+          <tr><td className="py-2 px-3">Enterprise</td><td className="py-2 px-3">Custom</td><td className="py-2 px-3">Custom</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Vault Endpoints</h2>
+    <div className="space-y-2 mb-6">
+      {[
+        { method: 'GET', path: '/vaults', desc: 'List all vaults for the authenticated user' },
+        { method: 'POST', path: '/vaults', desc: 'Create a new vault with allocation targets' },
+        { method: 'GET', path: '/vaults/:id', desc: 'Get vault details including current allocations' },
+        { method: 'PATCH', path: '/vaults/:id', desc: 'Update vault name or risk parameters' },
+        { method: 'DELETE', path: '/vaults/:id', desc: 'Deactivate and archive a vault' },
+        { method: 'POST', path: '/vaults/:id/deposit', desc: 'Deposit tokens into a vault' },
+        { method: 'POST', path: '/vaults/:id/withdraw', desc: 'Withdraw tokens from a vault' },
+        { method: 'GET', path: '/vaults/:id/history', desc: 'Get vault transaction history' },
+      ].map(ep => (
+        <div key={ep.path + ep.method} className="flex items-center gap-3 rounded-lg border border-border/30 bg-card/50 px-4 py-3">
+          <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded ${
+            ep.method === 'GET' ? 'bg-primary/10 text-primary' :
+            ep.method === 'POST' ? 'bg-green-500/10 text-green-500' :
+            ep.method === 'PATCH' ? 'bg-yellow-500/10 text-yellow-500' :
+            'bg-red-500/10 text-red-500'
+          }`}>
+            {ep.method}
+          </span>
+          <code className="text-[13px] font-mono text-foreground/80">{ep.path}</code>
+          <span className="text-[12px] text-muted-foreground ml-auto hidden sm:inline">{ep.desc}</span>
+        </div>
+      ))}
+    </div>
+
+    <h3 className="font-inter font-bold text-[16px] text-foreground mb-3">Create Vault — Request</h3>
+    <CodeBlock language="json" code={`POST /v1/vaults
+{
+  "name": "My RWA Portfolio",
+  "chain": "hashkey-mainnet",
+  "risk_tolerance": 0.6,
+  "max_drawdown": 0.15,
+  "rebalance_threshold": 0.05,
+  "allocations": {
+    "HSKT": 0.40,
+    "RWA-BOND": 0.35,
+    "USDC": 0.25
+  }
+}`} />
+    <h3 className="font-inter font-bold text-[16px] text-foreground mt-4 mb-3">Create Vault — Response</h3>
+    <CodeBlock language="json" code={`{
+  "id": "vault_8xK2mP9q",
+  "name": "My RWA Portfolio",
+  "status": "inactive",
+  "chain": "hashkey-mainnet",
+  "created_at": "2026-04-06T12:00:00Z",
+  "allocations": {
+    "HSKT": { "target": 0.40, "current": 0.00 },
+    "RWA-BOND": { "target": 0.35, "current": 0.00 },
+    "USDC": { "target": 0.25, "current": 0.00 }
+  },
+  "risk": {
+    "tolerance": 0.6,
+    "max_drawdown": 0.15,
+    "rebalance_threshold": 0.05
+  },
+  "agents": {
+    "monitor": "standby",
+    "decision": "standby",
+    "execution": "standby",
+    "settlement": "standby"
+  }
+}`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Agent Endpoints</h2>
+    <div className="space-y-2 mb-6">
+      {[
+        { method: 'GET', path: '/agents/status', desc: 'Get status of all agents across vaults' },
+        { method: 'GET', path: '/agents/:vaultId/logs', desc: 'Get agent activity logs for a vault' },
+        { method: 'POST', path: '/agents/:vaultId/pause', desc: 'Pause all agents for a vault' },
+        { method: 'POST', path: '/agents/:vaultId/resume', desc: 'Resume paused agents' },
+        { method: 'GET', path: '/agents/:vaultId/decisions', desc: 'List recent decision reports' },
+      ].map(ep => (
+        <div key={ep.path + ep.method} className="flex items-center gap-3 rounded-lg border border-border/30 bg-card/50 px-4 py-3">
+          <span className={`text-[11px] font-mono font-bold px-2 py-0.5 rounded ${ep.method === 'GET' ? 'bg-primary/10 text-primary' : 'bg-green-500/10 text-green-500'}`}>
+            {ep.method}
+          </span>
+          <code className="text-[13px] font-mono text-foreground/80">{ep.path}</code>
+          <span className="text-[12px] text-muted-foreground ml-auto hidden sm:inline">{ep.desc}</span>
+        </div>
+      ))}
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Error Handling</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      All errors follow a consistent format with an HTTP status code, error code, and human-readable message.
+    </p>
+    <CodeBlock language="json" code={`{
+  "error": {
+    "code": "VAULT_NOT_FOUND",
+    "message": "No vault found with ID 'vault_invalid'",
+    "status": 404,
+    "request_id": "req_abc123"
+  }
+}`} />
+    <div className="overflow-x-auto mt-4">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Status</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Code</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Description</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3">400</td><td className="py-2 px-3 font-mono">INVALID_REQUEST</td><td className="py-2 px-3">Missing or invalid parameters</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">401</td><td className="py-2 px-3 font-mono">UNAUTHORIZED</td><td className="py-2 px-3">Invalid or expired API key</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">404</td><td className="py-2 px-3 font-mono">NOT_FOUND</td><td className="py-2 px-3">Resource does not exist</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">429</td><td className="py-2 px-3 font-mono">RATE_LIMITED</td><td className="py-2 px-3">Too many requests</td></tr>
+          <tr><td className="py-2 px-3">500</td><td className="py-2 px-3 font-mono">INTERNAL_ERROR</td><td className="py-2 px-3">Unexpected server error</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </>
+);
+
+/* ── TypeScript SDK ── */
+const TypeScriptSdkContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The official APEX TypeScript SDK provides full type safety, async/await support, and seamless integration with Node.js and browser environments.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Installation</h2>
+    <CodeBlock language="bash" code={`# npm
+npm install @apex/sdk
+
+# yarn
+yarn add @apex/sdk
+
+# pnpm
+pnpm add @apex/sdk`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Quick Start</h2>
+    <CodeBlock language="typescript" code={`import { ApexSDK } from '@apex/sdk';
+
+const apex = new ApexSDK({
+  apiKey: process.env.APEX_API_KEY!,
+  chain: 'hashkey-mainnet',     // or 'hashkey-testnet'
+  timeout: 30_000,               // optional, default 30s
+});
+
+// List all vaults
+const vaults = await apex.vault.list();
+console.log(\`Found \${vaults.length} vaults\`);
+
+// Get vault details
+const vault = await apex.vault.get('vault_8xK2mP9q');
+console.log('Status:', vault.status);
+console.log('Total value:', vault.totalValue);`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Vault Management</h2>
+    <CodeBlock language="typescript" code={`// Create a vault
+const vault = await apex.vault.create({
+  name: 'Balanced Portfolio',
+  riskTolerance: 0.5,
+  maxDrawdown: 0.12,
+  rebalanceThreshold: 0.05,
+  allocations: {
+    'HSKT': 0.40,
+    'RWA-BOND': 0.35,
+    'USDC': 0.25,
+  },
+});
+
+// Deposit funds
+const tx = await apex.vault.deposit({
+  vaultId: vault.id,
+  amount: '10000',
+  token: 'USDC',
+});
+console.log('Deposit tx:', tx.hash);
+
+// Activate agents
+await apex.vault.activate(vault.id);
+
+// Update risk parameters
+await apex.vault.update(vault.id, {
+  riskTolerance: 0.7,
+  maxDrawdown: 0.20,
+});
+
+// Withdraw funds
+const withdrawal = await apex.vault.withdraw({
+  vaultId: vault.id,
+  amount: '2000',
+  token: 'USDC',
+  destination: '0xYourWallet...',
+});`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Agent Monitoring</h2>
+    <CodeBlock language="typescript" code={`// Get agent status
+const agents = await apex.agents.status(vault.id);
+for (const agent of agents) {
+  console.log(\`\${agent.type}: \${agent.status} (last run: \${agent.lastRunAt})\`);
+}
+
+// Subscribe to real-time events
+const unsubscribe = apex.events.subscribe(vault.id, (event) => {
+  switch (event.type) {
+    case 'drift.detected':
+      console.log(\`Drift: \${event.data.totalDrift}%\`);
+      break;
+    case 'rebalance.started':
+      console.log('Rebalance initiated:', event.data.tradeCount, 'trades');
+      break;
+    case 'rebalance.completed':
+      console.log('Rebalance complete. New drift:', event.data.newDrift);
+      break;
+    case 'agent.error':
+      console.error('Agent error:', event.data.message);
+      break;
+  }
+});
+
+// Later: stop listening
+unsubscribe();`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Type Reference</h2>
+    <CodeBlock language="typescript" code={`interface Vault {
+  id: string;
+  name: string;
+  status: 'inactive' | 'active' | 'paused' | 'archived';
+  chain: 'hashkey-mainnet' | 'hashkey-testnet';
+  totalValue: string;              // USD value
+  allocations: Record<string, {
+    target: number;
+    current: number;
+    value: string;
+  }>;
+  risk: {
+    tolerance: number;
+    maxDrawdown: number;
+    rebalanceThreshold: number;
+    currentDrawdown: number;
+  };
+  agents: Record<AgentType, AgentStatus>;
+  createdAt: string;
+  updatedAt: string;
+}
+
+type AgentType = 'monitor' | 'decision' | 'execution' | 'settlement';
+type AgentStatus = 'standby' | 'running' | 'paused' | 'error';
+
+interface ApexEvent {
+  type: string;
+  vaultId: string;
+  data: Record<string, unknown>;
+  timestamp: string;
+}`} />
+
+    <InfoBanner>
+      The SDK requires Node.js 18+ or a modern browser with ES2020 support. For serverless environments, set <code className="text-primary">timeout</code> to match your function's max execution time.
+    </InfoBanner>
+  </>
+);
+
+/* ── Python SDK ── */
+const PythonSdkContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The official APEX Python SDK is designed for data science workflows, backend integrations, and automated trading scripts. It supports both sync and async usage.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Installation</h2>
+    <CodeBlock language="bash" code={`# pip
+pip install apex-sdk
+
+# poetry
+poetry add apex-sdk
+
+# conda
+conda install -c apex apex-sdk`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Quick Start</h2>
+    <CodeBlock language="python" code={`from apex import ApexClient
+
+client = ApexClient(
+    api_key="your-api-key",
+    chain="hashkey-mainnet",  # or "hashkey-testnet"
+)
+
+# List vaults
+vaults = client.vaults.list()
+for v in vaults:
+    print(f"{v.name}: {v.total_value} USD ({v.status})")
+
+# Get vault details
+vault = client.vaults.get("vault_8xK2mP9q")
+print(f"Drift: {vault.current_drift:.2f}%")`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Vault Operations</h2>
+    <CodeBlock language="python" code={`# Create a vault
+vault = client.vaults.create(
+    name="Quant Strategy Alpha",
+    risk_tolerance=0.7,
+    max_drawdown=0.18,
+    rebalance_threshold=0.04,
+    allocations={
+        "HSKT": 0.45,
+        "RWA-BOND": 0.30,
+        "USDC": 0.25,
+    },
+)
+print(f"Created: {vault.id}")
+
+# Deposit and activate
+tx = client.vaults.deposit(vault.id, amount="25000", token="USDC")
+client.vaults.activate(vault.id)
+
+# Check agent status
+agents = client.agents.status(vault.id)
+for agent in agents:
+    print(f"  {agent.type}: {agent.status}")`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Async Support</h2>
+    <CodeBlock language="python" code={`import asyncio
+from apex import AsyncApexClient
+
+async def main():
+    client = AsyncApexClient(api_key="your-api-key")
+
+    # Concurrent vault fetches
+    vaults = await client.vaults.list()
+    details = await asyncio.gather(
+        *[client.vaults.get(v.id) for v in vaults]
+    )
+
+    for vault in details:
+        print(f"{vault.name}: {vault.total_value} USD")
+
+    await client.close()
+
+asyncio.run(main())`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Data Analysis</h2>
+    <CodeBlock language="python" code={`import pandas as pd
+from apex import ApexClient
+
+client = ApexClient(api_key="your-api-key")
+
+# Export vault history to DataFrame
+history = client.vaults.history("vault_8xK2mP9q", days=30)
+df = pd.DataFrame([
+    {
+        "timestamp": h.timestamp,
+        "total_value": float(h.total_value),
+        "drift": h.drift,
+        "rebalanced": h.rebalanced,
+    }
+    for h in history
+])
+
+# Compute daily returns
+df["daily_return"] = df["total_value"].pct_change()
+print(f"Mean daily return: {df['daily_return'].mean():.4f}")
+print(f"Sharpe ratio (annualized): {df['daily_return'].mean() / df['daily_return'].std() * (252 ** 0.5):.2f}")
+print(f"Max drawdown: {(df['total_value'] / df['total_value'].cummax() - 1).min():.2%}")
+print(f"Rebalance events: {df['rebalanced'].sum()}")`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Decision Reports</h2>
+    <CodeBlock language="python" code={`# Inspect the latest decision report
+report = client.decision.get_report("vault_8xK2mP9q")
+
+print(f"Trigger:         {report.trigger_reason}")
+print(f"Risk score:      {report.risk_score}/100")
+print(f"Trades planned:  {len(report.trades)}")
+print(f"Expected drift:  {report.expected_drift_after:.2f}%")
+
+for trade in report.trades:
+    print(f"  {trade.action.upper()} {trade.amount} {trade.token} @ \${trade.price:.2f}")
+    print(f"    Slippage tolerance: {trade.slippage_tolerance:.1%}")
+    print(f"    Estimated gas: {trade.estimated_gas} gwei")`} />
+
+    <InfoBanner>
+      The Python SDK requires Python 3.9+. For async usage, Python 3.10+ is recommended. The SDK uses <code className="text-primary">httpx</code> under the hood for both sync and async HTTP clients.
+    </InfoBanner>
+  </>
+);
+
+/* ── Webhooks ── */
+const WebhooksContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      APEX Webhooks deliver real-time event notifications to your server when portfolio changes, agent actions, or system events occur. Configure endpoints from the Dashboard or via the API.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">How Webhooks Work</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`APEX Event Bus ──▶ Webhook Dispatcher ──▶ Your Endpoint
+                                              │
+                                    ┌─────────┴─────────┐
+                                  2xx OK            Non-2xx / Timeout
+                                    │                    │
+                                  Done              Retry (exponential)
+                                                   Max 5 retries over 24h`}</pre>
+    </div>
+
+    <InfoBanner>
+      Webhook payloads are signed with HMAC-SHA256 using your webhook secret. Always verify signatures before processing events to prevent spoofing.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Register a Webhook</h2>
+    <CodeBlock language="bash" code={`curl -X POST https://api.apex.hashkey.com/v1/webhooks \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -d '{
+    "url": "https://your-app.com/webhooks/apex",
+    "events": ["vault.rebalanced", "agent.alert", "deposit.confirmed"],
+    "secret": "whsec_your_signing_secret"
+  }'`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Event Types</h2>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Event</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Description</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">vault.created</td><td className="py-2 px-3">A new vault was created</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">vault.activated</td><td className="py-2 px-3">Vault agents started running</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">vault.rebalanced</td><td className="py-2 px-3">Rebalance cycle completed</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">deposit.confirmed</td><td className="py-2 px-3">Deposit transaction finalized on-chain</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">withdrawal.completed</td><td className="py-2 px-3">Withdrawal settled to destination</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">agent.alert</td><td className="py-2 px-3">Agent raised a warning or error</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">drift.detected</td><td className="py-2 px-3">Portfolio drift exceeded threshold</td></tr>
+          <tr><td className="py-2 px-3 font-mono">settlement.completed</td><td className="py-2 px-3">HSP settlement finalized</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Payload Format</h2>
+    <CodeBlock language="json" code={`{
+  "id": "evt_a1b2c3d4",
+  "type": "vault.rebalanced",
+  "created_at": "2026-04-06T14:30:00Z",
+  "data": {
+    "vault_id": "vault_8xK2mP9q",
+    "trades": [
+      { "action": "sell", "token": "HSKT", "amount": "120.5", "price": 12.45 },
+      { "action": "buy", "token": "RWA-BOND", "amount": "85.2", "price": 98.10 }
+    ],
+    "drift_before": 7.2,
+    "drift_after": 0.8,
+    "gas_used": "0.0023 HSK"
+  }
+}`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Signature Verification</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Every webhook request includes an <code className="text-primary font-mono">X-Apex-Signature</code> header. Verify it to ensure the payload is authentic.
+    </p>
+    <CodeBlock language="typescript" code={`import crypto from 'crypto';
+import express from 'express';
+
+const app = express();
+const WEBHOOK_SECRET = process.env.APEX_WEBHOOK_SECRET!;
+
+app.post('/webhooks/apex', express.raw({ type: 'application/json' }), (req, res) => {
+  const signature = req.headers['x-apex-signature'] as string;
+  const timestamp = req.headers['x-apex-timestamp'] as string;
+
+  // Verify signature
+  const payload = \`\${timestamp}.\${req.body.toString()}\`;
+  const expected = crypto
+    .createHmac('sha256', WEBHOOK_SECRET)
+    .update(payload)
+    .digest('hex');
+
+  if (signature !== \`v1=\${expected}\`) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  // Prevent replay attacks (reject if older than 5 minutes)
+  const age = Date.now() - parseInt(timestamp) * 1000;
+  if (age > 300_000) {
+    return res.status(401).send('Timestamp too old');
+  }
+
+  // Process the event
+  const event = JSON.parse(req.body.toString());
+  console.log(\`Event: \${event.type}\`, event.data);
+
+  res.sendStatus(200);
+});`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Python Handler</h2>
+    <CodeBlock language="python" code={`import hmac
+import hashlib
+from flask import Flask, request, jsonify
+
+app = Flask(__name__)
+WEBHOOK_SECRET = "whsec_your_signing_secret"
+
+@app.route("/webhooks/apex", methods=["POST"])
+def handle_webhook():
+    signature = request.headers.get("X-Apex-Signature", "")
+    timestamp = request.headers.get("X-Apex-Timestamp", "")
+    body = request.get_data(as_text=True)
+
+    # Verify HMAC
+    payload = f"{timestamp}.{body}"
+    expected = hmac.new(
+        WEBHOOK_SECRET.encode(),
+        payload.encode(),
+        hashlib.sha256,
+    ).hexdigest()
+
+    if signature != f"v1={expected}":
+        return jsonify({"error": "Invalid signature"}), 401
+
+    event = request.get_json()
+    print(f"[{event['type']}] {event['data']}")
+
+    return "", 200`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Retry Policy</h2>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Attempt</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Delay</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Cumulative</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3">1</td><td className="py-2 px-3">1 min</td><td className="py-2 px-3">1 min</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">2</td><td className="py-2 px-3">5 min</td><td className="py-2 px-3">6 min</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">3</td><td className="py-2 px-3">30 min</td><td className="py-2 px-3">36 min</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3">4</td><td className="py-2 px-3">2 hours</td><td className="py-2 px-3">2h 36m</td></tr>
+          <tr><td className="py-2 px-3">5</td><td className="py-2 px-3">24 hours</td><td className="py-2 px-3">~26h 36m</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <InfoBanner>
+      After 5 failed delivery attempts, the webhook endpoint is automatically disabled. Re-enable it from the Dashboard or via <code className="text-primary font-mono">PATCH /v1/webhooks/:id</code>.
+    </InfoBanner>
+  </>
+);
+
 /* ── Generic sub-page content ── */
 const GenericContent = ({ slug }: { slug: string }) => {
   const label = findLabelForSlug(slug) || slug;
@@ -1342,7 +1929,11 @@ export const DocsPageContent = ({ activeTab, activeSlug }: DocsPageContentProps)
       {activeSlug === 'chainlink-feeds' && <ChainlinkFeedsContent />}
       {activeSlug === 'nexaid-kyc' && <NexaIdKycContent />}
       {activeSlug === 'hsp-protocol' && <HspProtocolContent />}
-      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent', 'creating-vault', 'risk-parameters', 'rebalancing', 'deposits-withdrawals', 'hashkey-chain', 'chainlink-feeds', 'nexaid-kyc', 'hsp-protocol'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
+      {activeSlug === 'rest-api' && <RestApiContent />}
+      {activeSlug === 'typescript-sdk' && <TypeScriptSdkContent />}
+      {activeSlug === 'python-sdk' && <PythonSdkContent />}
+      {activeSlug === 'webhooks' && <WebhooksContent />}
+      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent', 'creating-vault', 'risk-parameters', 'rebalancing', 'deposits-withdrawals', 'hashkey-chain', 'chainlink-feeds', 'nexaid-kyc', 'hsp-protocol', 'rest-api', 'typescript-sdk', 'python-sdk', 'webhooks'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
 
       {/* Bottom Navigation */}
       <div className="border-t border-border/30 pt-8 mt-8 flex items-center justify-between">
