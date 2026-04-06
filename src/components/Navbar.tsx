@@ -21,15 +21,25 @@ const Navbar = () => {
 
       {/* Desktop Nav */}
       <nav className="hidden md:flex items-center gap-8">
-        {NAV_LINKS.map((link) => (
-          <a
-            key={link}
-            href={`#${link.toLowerCase()}`}
-            className="font-inter text-[16px] text-foreground/80 hover:text-primary transition-colors duration-200"
-          >
-            {link}
-          </a>
-        ))}
+        {NAV_LINKS.map((link) =>
+          link.isRoute ? (
+            <Link
+              key={link.label}
+              to={link.href}
+              className="font-inter text-[16px] text-foreground/80 hover:text-primary transition-colors duration-200"
+            >
+              {link.label}
+            </Link>
+          ) : (
+            <a
+              key={link.label}
+              href={link.href}
+              className="font-inter text-[16px] text-foreground/80 hover:text-primary transition-colors duration-200"
+            >
+              {link.label}
+            </a>
+          )
+        )}
       </nav>
 
       {/* Mobile Toggle */}
@@ -44,16 +54,27 @@ const Navbar = () => {
       {/* Mobile Overlay */}
       {open && (
         <div className="fixed inset-0 z-40 bg-background/95 backdrop-blur-sm flex flex-col items-center justify-center gap-8">
-          {NAV_LINKS.map((link) => (
-            <a
-              key={link}
-              href={`#${link.toLowerCase()}`}
-              onClick={() => setOpen(false)}
-              className="font-inter text-2xl text-foreground/80 hover:text-primary transition-colors"
-            >
-              {link}
-            </a>
-          ))}
+          {NAV_LINKS.map((link) =>
+            link.isRoute ? (
+              <Link
+                key={link.label}
+                to={link.href}
+                onClick={() => setOpen(false)}
+                className="font-inter text-2xl text-foreground/80 hover:text-primary transition-colors"
+              >
+                {link.label}
+              </Link>
+            ) : (
+              <a
+                key={link.label}
+                href={link.href}
+                onClick={() => setOpen(false)}
+                className="font-inter text-2xl text-foreground/80 hover:text-primary transition-colors"
+              >
+                {link.label}
+              </a>
+            )
+          )}
         </div>
       )}
     </header>
