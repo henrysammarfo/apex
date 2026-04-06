@@ -14,6 +14,10 @@ import {
   CheckCircle2,
   AlertTriangle,
   ArrowRight,
+  Plus,
+  Minus,
+  Settings,
+  Wallet,
 } from 'lucide-react';
 import { AgentIcon } from '@/components/icons/DashboardIcons';
 import { Button } from '@/components/ui/button';
@@ -62,7 +66,44 @@ const Dashboard = () => {
 
           <main className="flex-1 overflow-y-auto p-6">
             <div className="max-w-[1400px] mx-auto space-y-6">
-              {/* KPI Cards — now clickable */}
+              {/* Quick Actions */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <button onClick={() => navigate('/dashboard/portfolio?action=deposit')} className="liquid-glass rounded-xl p-5 text-left hover:bg-foreground/[0.04] transition-colors group cursor-pointer">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
+                      <Plus className="w-4.5 h-4.5 text-primary" />
+                    </div>
+                    <div>
+                      <p className="font-inter font-bold text-foreground text-[14px]">Deposit</p>
+                      <p className="font-inter text-[11px] text-muted-foreground">Add funds to your vault</p>
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => navigate('/dashboard/portfolio?action=withdraw')} className="liquid-glass rounded-xl p-5 text-left hover:bg-foreground/[0.04] transition-colors group cursor-pointer">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-lg bg-accent/10 flex items-center justify-center group-hover:bg-accent/20 transition-colors">
+                      <Minus className="w-4.5 h-4.5 text-accent" />
+                    </div>
+                    <div>
+                      <p className="font-inter font-bold text-foreground text-[14px]">Withdraw</p>
+                      <p className="font-inter text-[11px] text-muted-foreground">Withdraw yield or funds via HSP</p>
+                    </div>
+                  </div>
+                </button>
+                <button onClick={() => navigate('/dashboard/settings')} className="liquid-glass rounded-xl p-5 text-left hover:bg-foreground/[0.04] transition-colors group cursor-pointer">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="w-9 h-9 rounded-lg bg-secondary flex items-center justify-center group-hover:bg-secondary/80 transition-colors">
+                      <Settings className="w-4.5 h-4.5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-inter font-bold text-foreground text-[14px]">Configure</p>
+                      <p className="font-inter text-[11px] text-muted-foreground">Agent thresholds & risk limits</p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+
+              {/* KPI Cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {kpis.map((kpi, i) => (
                   <motion.div
