@@ -1334,7 +1334,15 @@ export const DocsPageContent = ({ activeTab, activeSlug }: DocsPageContentProps)
       {activeSlug === 'decision-agent' && <DecisionAgentContent />}
       {activeSlug === 'execution-agent' && <ExecutionAgentContent />}
       {activeSlug === 'settlement-agent' && <SettlementAgentContent />}
-      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
+      {activeSlug === 'creating-vault' && <CreatingVaultContent />}
+      {activeSlug === 'risk-parameters' && <RiskParametersContent />}
+      {activeSlug === 'rebalancing' && <RebalancingContent />}
+      {activeSlug === 'deposits-withdrawals' && <DepositsWithdrawalsContent />}
+      {activeSlug === 'hashkey-chain' && <HashKeyChainContent />}
+      {activeSlug === 'chainlink-feeds' && <ChainlinkFeedsContent />}
+      {activeSlug === 'nexaid-kyc' && <NexaIdKycContent />}
+      {activeSlug === 'hsp-protocol' && <HspProtocolContent />}
+      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent', 'creating-vault', 'risk-parameters', 'rebalancing', 'deposits-withdrawals', 'hashkey-chain', 'chainlink-feeds', 'nexaid-kyc', 'hsp-protocol'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
 
       {/* Bottom Navigation */}
       <div className="border-t border-border/30 pt-8 mt-8 flex items-center justify-between">
