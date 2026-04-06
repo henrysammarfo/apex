@@ -2,12 +2,13 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Settings as SettingsIcon, ShieldCheck, Bell, Sliders, Key, X, CheckCircle2, Pencil } from 'lucide-react';
+import { ShieldCheck, Bell, Sliders, Key, X, CheckCircle2, Pencil, Sun, Moon } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { useTheme } from '@/hooks/useTheme';
 
 interface Setting {
   label: string;
@@ -72,6 +73,7 @@ const DashboardSettings = () => {
   const [editModal, setEditModal] = useState<{ groupIdx: number; settingIdx: number } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saved, setSaved] = useState(false);
+  const { theme, toggleTheme } = useTheme();
 
   const openEdit = (gi: number, si: number) => {
     setEditValue(groups[gi].settings[si].value);
@@ -121,12 +123,51 @@ const DashboardSettings = () => {
                 </motion.div>
               )}
 
+              {/* Theme Toggle Card */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="liquid-glass rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    {theme === 'dark' ? <Moon className="w-4 h-4 text-primary" /> : <Sun className="w-4 h-4 text-primary" />}
+                  </div>
+                  <div>
+                    <h3 className="font-inter font-bold text-foreground text-[15px]">Appearance</h3>
+                    <p className="font-inter text-[11px] text-muted-foreground">Switch between dark and light themes</p>
+                  </div>
+                </div>
+                <div className="px-5 py-4 flex items-center justify-between">
+                  <div className="flex-1 min-w-0 mr-4">
+                    <p className="font-inter text-[13px] text-foreground font-medium">Theme</p>
+                    <p className="font-inter text-[11px] text-muted-foreground">
+                      Currently using <span className="text-primary font-medium">{theme === 'dark' ? 'Dark' : 'Light'}</span> mode
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <button
+                      onClick={() => theme !== 'light' && toggleTheme()}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-inter transition-colors ${
+                        theme === 'light' ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Sun className="w-3.5 h-3.5" /> Light
+                    </button>
+                    <button
+                      onClick={() => theme !== 'dark' && toggleTheme()}
+                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[12px] font-inter transition-colors ${
+                        theme === 'dark' ? 'bg-primary/10 text-primary font-medium' : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Moon className="w-3.5 h-3.5" /> Dark
+                    </button>
+                  </div>
+                </div>
+              </motion.div>
+
               {groups.map((group, gi) => (
                 <motion.div
                   key={group.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: gi * 0.1 }}
+                  transition={{ delay: (gi + 1) * 0.1 }}
                   className="liquid-glass rounded-xl overflow-hidden"
                 >
                   <div className="px-5 py-4 border-b border-border flex items-center gap-3">

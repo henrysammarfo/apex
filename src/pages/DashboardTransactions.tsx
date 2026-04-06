@@ -2,7 +2,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, CheckCircle2, Clock, ExternalLink, X, Copy, ArrowRight } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, ExternalLink, X, Copy, ArrowRight, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
@@ -21,6 +21,18 @@ const Transactions = () => {
   const [selectedTx, setSelectedTx] = useState<typeof transactions[0] | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const exportCSV = () => {
+    const headers = ['TX Hash', 'Type', 'From', 'To', 'Amount', 'Gas', 'Block', 'Timestamp', 'Status', 'Confirmations', 'Nonce', 'Gas Used', 'Slippage'];
+    const rows = transactions.map(tx => [tx.fullHash, tx.type, tx.from, tx.to, tx.amount, tx.gas, tx.block, tx.timestamp, tx.status, tx.confirmations, tx.nonce, tx.gasUsed, tx.slippage]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `apex-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
   const handleCopy = (text: string) => {
     navigator.clipboard.writeText(text);
     setCopied(true);
@@ -51,9 +63,14 @@ const Transactions = () => {
 
               {/* Table */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="liquid-glass rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-border">
-                  <h3 className="font-inter font-bold text-foreground text-[15px]">Transaction History</h3>
-                  <p className="font-inter text-[11px] text-muted-foreground mt-0.5">Click any transaction to view full details</p>
+                <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                  <div>
+                    <h3 className="font-inter font-bold text-foreground text-[15px]">Transaction History</h3>
+                    <p className="font-inter text-[11px] text-muted-foreground mt-0.5">Click any transaction to view full details</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={exportCSV} className="font-inter text-[12px] gap-1.5">
+                    <Download className="w-3.5 h-3.5" /> Export CSV
+                  </Button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
