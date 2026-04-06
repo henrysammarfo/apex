@@ -21,7 +21,20 @@ const Transactions = () => {
   const [selectedTx, setSelectedTx] = useState<typeof transactions[0] | null>(null);
   const [copied, setCopied] = useState(false);
 
-  const handleCopy = (text: string) => {
+  const exportCSV = () => {
+    const headers = ['TX Hash', 'Type', 'From', 'To', 'Amount', 'Gas', 'Block', 'Timestamp', 'Status', 'Confirmations', 'Nonce', 'Gas Used', 'Slippage'];
+    const rows = transactions.map(tx => [tx.fullHash, tx.type, tx.from, tx.to, tx.amount, tx.gas, tx.block, tx.timestamp, tx.status, tx.confirmations, tx.nonce, tx.gasUsed, tx.slippage]);
+    const csv = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `apex-transactions-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+
     navigator.clipboard.writeText(text);
     setCopied(true);
     setTimeout(() => setCopied(false), 1500);
