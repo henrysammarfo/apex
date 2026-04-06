@@ -1,7 +1,13 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, X } from 'lucide-react';
 
-const NAV_LINKS = ['AGENTS', 'ARCHITECTURE', 'ECOSYSTEM', 'DOCS'];
+const NAV_LINKS = [
+  { label: 'AGENTS', href: '#agents' },
+  { label: 'ARCHITECTURE', href: '#architecture' },
+  { label: 'ECOSYSTEM', href: '#ecosystem' },
+  { label: 'DOCS', href: '/docs', isRoute: true },
+];
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
