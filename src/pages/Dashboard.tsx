@@ -3,6 +3,7 @@ import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion } from 'framer-motion';
 import PerformanceChart from '@/components/PerformanceChart';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
@@ -50,6 +51,7 @@ const allocationColors = [
 ];
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background">
@@ -150,7 +152,7 @@ const Dashboard = () => {
                       </thead>
                       <tbody>
                         {holdings.map((h) => (
-                          <tr key={h.ticker} className="border-b border-border/50 hover:bg-foreground/[0.02] transition-colors">
+                          <tr key={h.ticker} onClick={() => navigate('/dashboard/portfolio')} className="border-b border-border/50 hover:bg-foreground/[0.04] transition-colors cursor-pointer group">
                             <td className="px-5 py-3.5">
                               <p className="font-inter font-medium text-foreground text-[13px]">{h.asset}</p>
                               <p className="font-inter text-[11px] text-muted-foreground">{h.ticker}</p>
@@ -188,7 +190,7 @@ const Dashboard = () => {
                   </div>
                   <div className="divide-y divide-border/50">
                     {agentLogs.map((log, i) => (
-                      <div key={i} className="px-5 py-3.5 hover:bg-foreground/[0.02] transition-colors">
+                      <div key={i} onClick={() => navigate('/dashboard/agents')} className="px-5 py-3.5 hover:bg-foreground/[0.04] transition-colors cursor-pointer">
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-inter text-[10px] uppercase tracking-widest font-bold ${
                             log.agent === 'Monitor' ? 'text-blue-400' :
