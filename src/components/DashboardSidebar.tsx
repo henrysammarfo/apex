@@ -1,13 +1,5 @@
-import {
-  LayoutDashboard,
-  Wallet,
-  Activity,
-  Bot,
-  Settings,
-  ArrowLeft,
-  LogOut,
-  Zap,
-} from 'lucide-react';
+import { ArrowLeft, LogOut } from 'lucide-react';
+import { OverviewIcon, PortfolioIcon, AgentIcon, TransactionIcon, SettingsIcon, ApexLogo } from '@/components/icons/DashboardIcons';
 import { NavLink } from '@/components/NavLink';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
@@ -25,14 +17,14 @@ import {
 } from '@/components/ui/sidebar';
 
 const mainItems = [
-  { title: 'Overview', url: '/dashboard', icon: LayoutDashboard },
-  { title: 'Portfolio', url: '/dashboard/portfolio', icon: Wallet },
-  { title: 'Agent Activity', url: '/dashboard/agents', icon: Bot },
-  { title: 'Transactions', url: '/dashboard/transactions', icon: Activity },
+  { title: 'Overview', url: '/dashboard', icon: OverviewIcon },
+  { title: 'Portfolio', url: '/dashboard/portfolio', icon: PortfolioIcon },
+  { title: 'Agent Activity', url: '/dashboard/agents', icon: AgentIcon },
+  { title: 'Transactions', url: '/dashboard/transactions', icon: TransactionIcon },
 ];
 
 const settingsItems = [
-  { title: 'Settings', url: '/dashboard/settings', icon: Settings },
+  { title: 'Settings', url: '/dashboard/settings', icon: SettingsIcon },
 ];
 
 export function DashboardSidebar() {
@@ -54,7 +46,7 @@ export function DashboardSidebar() {
         {/* Logo */}
         <div className="px-4 py-5 flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center flex-shrink-0">
-            <Zap className="w-4 h-4 text-primary" />
+            <ApexLogo className="w-4 h-4 text-primary" />
           </div>
           {!collapsed && (
             <span className="font-inter font-extrabold text-foreground text-sm tracking-tight uppercase">

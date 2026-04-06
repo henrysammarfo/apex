@@ -6,23 +6,23 @@ import PerformanceChart from '@/components/PerformanceChart';
 import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
-  TrendingDown,
   DollarSign,
   BarChart3,
   ShieldCheck,
   Clock,
   ArrowUpRight,
-  ArrowDownRight,
   CheckCircle2,
   AlertTriangle,
-  Zap,
+  ArrowRight,
 } from 'lucide-react';
+import { AgentIcon } from '@/components/icons/DashboardIcons';
+import { Button } from '@/components/ui/button';
 
 const kpis = [
-  { label: 'Total AUM', value: '$12.4M', change: '+3.2%', up: true, icon: DollarSign },
-  { label: 'Daily Yield', value: '$1,847', change: '+12.1%', up: true, icon: TrendingUp },
-  { label: 'Risk Score', value: '0.34', change: '-0.08', up: true, icon: ShieldCheck },
-  { label: 'Rebalances (24h)', value: '7', change: '+2', up: true, icon: BarChart3 },
+  { label: 'Total AUM', value: '$12.4M', change: '+3.2%', up: true, icon: DollarSign, link: '/dashboard/portfolio' },
+  { label: 'Daily Yield', value: '$1,847', change: '+12.1%', up: true, icon: TrendingUp, link: '/dashboard/transactions' },
+  { label: 'Risk Score', value: '0.34', change: '-0.08', up: true, icon: ShieldCheck, link: '/dashboard/settings' },
+  { label: 'Rebalances (24h)', value: '7', change: '+2', up: true, icon: BarChart3, link: '/dashboard/agents' },
 ];
 
 const holdings = [
@@ -60,10 +60,9 @@ const Dashboard = () => {
         <div className="flex-1 flex flex-col min-w-0">
           <DashboardHeader title="Portfolio Overview" />
 
-          {/* Dashboard Content */}
           <main className="flex-1 overflow-y-auto p-6">
             <div className="max-w-[1400px] mx-auto space-y-6">
-              {/* KPI Cards */}
+              {/* KPI Cards — now clickable */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {kpis.map((kpi, i) => (
                   <motion.div
@@ -71,24 +70,21 @@ const Dashboard = () => {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.08, duration: 0.4 }}
-                    className="liquid-glass rounded-xl p-5"
+                    onClick={() => navigate(kpi.link)}
+                    className="liquid-glass rounded-xl p-5 cursor-pointer hover:bg-foreground/[0.03] transition-colors group"
                   >
                     <div className="flex items-center justify-between mb-3">
                       <span className="font-inter text-[11px] text-muted-foreground uppercase tracking-widest">
                         {kpi.label}
                       </span>
-                      <kpi.icon className="w-4 h-4 text-primary/60" />
+                      <kpi.icon className="w-4 h-4 text-primary/60 group-hover:text-primary transition-colors" />
                     </div>
                     <p className="font-inter font-extrabold text-foreground text-[28px] leading-none mb-1">
                       {kpi.value}
                     </p>
                     <div className="flex items-center gap-1">
-                      {kpi.up ? (
-                        <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
-                      ) : (
-                        <ArrowDownRight className="w-3.5 h-3.5 text-destructive" />
-                      )}
-                      <span className={`font-inter text-[12px] font-medium ${kpi.up ? 'text-primary' : 'text-destructive'}`}>
+                      <ArrowUpRight className="w-3.5 h-3.5 text-primary" />
+                      <span className="font-inter text-[12px] font-medium text-primary">
                         {kpi.change}
                       </span>
                     </div>
@@ -114,8 +110,11 @@ const Dashboard = () => {
                   transition={{ delay: 0.3, duration: 0.5 }}
                   className="lg:col-span-2 liquid-glass rounded-xl overflow-hidden"
                 >
-                  <div className="px-5 py-4 border-b border-border">
+                  <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                     <h3 className="font-inter font-bold text-foreground text-[15px]">Portfolio Holdings</h3>
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/portfolio')} className="text-primary text-[12px] font-inter gap-1 h-7 px-2">
+                      View All <ArrowRight className="w-3 h-3" />
+                    </Button>
                   </div>
 
                   {/* Allocation Bar */}
@@ -154,7 +153,7 @@ const Dashboard = () => {
                         {holdings.map((h) => (
                           <tr key={h.ticker} onClick={() => navigate('/dashboard/portfolio')} className="border-b border-border/50 hover:bg-foreground/[0.04] transition-colors cursor-pointer group">
                             <td className="px-5 py-3.5">
-                              <p className="font-inter font-medium text-foreground text-[13px]">{h.asset}</p>
+                              <p className="font-inter font-medium text-foreground text-[13px] group-hover:text-primary transition-colors">{h.asset}</p>
                               <p className="font-inter text-[11px] text-muted-foreground">{h.ticker}</p>
                             </td>
                             <td className="text-right px-5 py-3.5 font-inter font-medium text-foreground text-[13px]">{h.value}</td>
@@ -165,7 +164,7 @@ const Dashboard = () => {
                                   <CheckCircle2 className="w-3 h-3" /> Stable
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 text-[10px] font-inter text-yellow-400 bg-yellow-400/10 rounded-full px-2 py-0.5">
+                                <span className="inline-flex items-center gap-1 text-[10px] font-inter text-accent bg-accent/10 rounded-full px-2 py-0.5">
                                   <AlertTriangle className="w-3 h-3" /> Drift
                                 </span>
                               )}
@@ -186,17 +185,19 @@ const Dashboard = () => {
                 >
                   <div className="px-5 py-4 border-b border-border flex items-center justify-between">
                     <h3 className="font-inter font-bold text-foreground text-[15px]">Agent Activity</h3>
-                    <Zap className="w-4 h-4 text-primary/60" />
+                    <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/agents')} className="text-primary text-[12px] font-inter gap-1 h-7 px-2">
+                      View All <ArrowRight className="w-3 h-3" />
+                    </Button>
                   </div>
                   <div className="divide-y divide-border/50">
                     {agentLogs.map((log, i) => (
                       <div key={i} onClick={() => navigate('/dashboard/agents')} className="px-5 py-3.5 hover:bg-foreground/[0.04] transition-colors cursor-pointer">
                         <div className="flex items-center justify-between mb-1">
                           <span className={`font-inter text-[10px] uppercase tracking-widest font-bold ${
-                            log.agent === 'Monitor' ? 'text-blue-400' :
-                            log.agent === 'Decision' ? 'text-purple-400' :
+                            log.agent === 'Monitor' ? 'text-accent' :
+                            log.agent === 'Decision' ? 'text-primary' :
                             log.agent === 'Execution' ? 'text-primary' :
-                            'text-orange-400'
+                            'text-accent'
                           }`}>
                             {log.agent}
                           </span>
