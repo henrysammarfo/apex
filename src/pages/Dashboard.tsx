@@ -3,6 +3,7 @@ import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion } from 'framer-motion';
 import PerformanceChart from '@/components/PerformanceChart';
+import { useNavigate } from 'react-router-dom';
 import {
   TrendingUp,
   TrendingDown,
