@@ -1929,7 +1929,11 @@ export const DocsPageContent = ({ activeTab, activeSlug }: DocsPageContentProps)
       {activeSlug === 'chainlink-feeds' && <ChainlinkFeedsContent />}
       {activeSlug === 'nexaid-kyc' && <NexaIdKycContent />}
       {activeSlug === 'hsp-protocol' && <HspProtocolContent />}
-      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent', 'creating-vault', 'risk-parameters', 'rebalancing', 'deposits-withdrawals', 'hashkey-chain', 'chainlink-feeds', 'nexaid-kyc', 'hsp-protocol'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
+      {activeSlug === 'rest-api' && <RestApiContent />}
+      {activeSlug === 'typescript-sdk' && <TypeScriptSdkContent />}
+      {activeSlug === 'python-sdk' && <PythonSdkContent />}
+      {activeSlug === 'webhooks' && <WebhooksContent />}
+      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent', 'creating-vault', 'risk-parameters', 'rebalancing', 'deposits-withdrawals', 'hashkey-chain', 'chainlink-feeds', 'nexaid-kyc', 'hsp-protocol', 'rest-api', 'typescript-sdk', 'python-sdk', 'webhooks'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
 
       {/* Bottom Navigation */}
       <div className="border-t border-border/30 pt-8 mt-8 flex items-center justify-between">
