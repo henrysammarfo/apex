@@ -63,9 +63,14 @@ const Transactions = () => {
 
               {/* Table */}
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.25 }} className="liquid-glass rounded-xl overflow-hidden">
-                <div className="px-5 py-4 border-b border-border">
-                  <h3 className="font-inter font-bold text-foreground text-[15px]">Transaction History</h3>
-                  <p className="font-inter text-[11px] text-muted-foreground mt-0.5">Click any transaction to view full details</p>
+                <div className="px-5 py-4 border-b border-border flex items-center justify-between">
+                  <div>
+                    <h3 className="font-inter font-bold text-foreground text-[15px]">Transaction History</h3>
+                    <p className="font-inter text-[11px] text-muted-foreground mt-0.5">Click any transaction to view full details</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={exportCSV} className="font-inter text-[12px] gap-1.5">
+                    <Download className="w-3.5 h-3.5" /> Export CSV
+                  </Button>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full">
