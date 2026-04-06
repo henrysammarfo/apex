@@ -2,7 +2,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ShieldCheck, Bell, Sliders, Key, X, CheckCircle2, Pencil, Sun, Moon } from 'lucide-react';
+import { ShieldCheck, Bell, Sliders, Key, X, CheckCircle2, Pencil, Sun, Moon, Send } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -68,12 +68,34 @@ const initialGroups: SettingGroup[] = [
   },
 ];
 
+interface TelegramPref {
+  label: string;
+  desc: string;
+  enabled: boolean;
+}
+
+const defaultTelegramPrefs: TelegramPref[] = [
+  { label: 'Price Drift Detected', desc: 'Monitor Agent detects allocation drift beyond threshold', enabled: true },
+  { label: 'Rebalance Executed', desc: 'Decision Agent approves and executes a portfolio rebalance', enabled: true },
+  { label: 'Transaction Confirmed', desc: 'Execution Agent confirms on-chain TX settlement', enabled: true },
+  { label: 'Yield Disbursement', desc: 'Settlement Agent completes yield distribution via HSP', enabled: false },
+  { label: 'Risk Alert', desc: 'Any risk parameter breach (loss limit, exposure cap)', enabled: true },
+  { label: 'Agent Status Change', desc: 'An agent goes offline or encounters an error', enabled: false },
+];
+
 const DashboardSettings = () => {
   const [groups, setGroups] = useState(initialGroups);
   const [editModal, setEditModal] = useState<{ groupIdx: number; settingIdx: number } | null>(null);
   const [editValue, setEditValue] = useState('');
   const [saved, setSaved] = useState(false);
   const { theme, toggleTheme } = useTheme();
+  const [telegramPrefs, setTelegramPrefs] = useState(defaultTelegramPrefs);
+  const [telegramEnabled, setTelegramEnabled] = useState(true);
+  const [telegramChatId, setTelegramChatId] = useState('');
+
+  const toggleTelegramPref = (index: number) => {
+    setTelegramPrefs(prev => prev.map((p, i) => i === index ? { ...p, enabled: !p.enabled } : p));
+  };
 
   const openEdit = (gi: number, si: number) => {
     setEditValue(groups[gi].settings[si].value);
@@ -205,6 +227,45 @@ const DashboardSettings = () => {
                   </div>
                 </motion.div>
               ))}
+
+              {/* Telegram Notifications */}
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="liquid-glass rounded-xl overflow-hidden">
+                <div className="px-5 py-4 border-b border-border flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Send className="w-4 h-4 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-inter font-bold text-foreground text-[15px]">Telegram Alerts</h3>
+                    <p className="font-inter text-[11px] text-muted-foreground">Receive real-time agent notifications via Telegram Bot</p>
+                  </div>
+                  <Switch checked={telegramEnabled} onCheckedChange={setTelegramEnabled} />
+                </div>
+                {telegramEnabled && (
+                  <>
+                    <div className="px-5 py-3 border-b border-border/50">
+                      <Label className="text-foreground text-[10px] font-inter uppercase tracking-widest mb-1.5 block">Telegram Chat ID</Label>
+                      <Input
+                        value={telegramChatId}
+                        onChange={(e) => setTelegramChatId(e.target.value)}
+                        placeholder="e.g. 123456789"
+                        className="bg-secondary/50 border-border h-8 text-[12px] font-mono"
+                      />
+                      <p className="font-inter text-[10px] text-muted-foreground mt-1">Send /start to @ApexVaultBot to get your Chat ID</p>
+                    </div>
+                    <div className="divide-y divide-border/50">
+                      {telegramPrefs.map((pref, i) => (
+                        <div key={pref.label} className="px-5 py-3 flex items-center justify-between hover:bg-foreground/[0.02] transition-colors">
+                          <div className="flex-1 min-w-0 mr-4">
+                            <p className="font-inter text-[13px] text-foreground font-medium">{pref.label}</p>
+                            <p className="font-inter text-[11px] text-muted-foreground">{pref.desc}</p>
+                          </div>
+                          <Switch checked={pref.enabled} onCheckedChange={() => toggleTelegramPref(i)} />
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </motion.div>
             </div>
           </main>
         </div>

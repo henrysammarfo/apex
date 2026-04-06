@@ -19,6 +19,7 @@ import {
 const mainItems = [
   { title: 'Overview', url: '/dashboard', icon: OverviewIcon },
   { title: 'Portfolio', url: '/dashboard/portfolio', icon: PortfolioIcon },
+  { title: 'Vault Config', url: '/dashboard/vault', icon: PortfolioIcon },
   { title: 'Agent Activity', url: '/dashboard/agents', icon: AgentIcon },
   { title: 'Transactions', url: '/dashboard/transactions', icon: TransactionIcon },
 ];

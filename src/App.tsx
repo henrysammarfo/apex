@@ -16,6 +16,7 @@ import DashboardAgents from "./pages/DashboardAgents.tsx";
 import DashboardTransactions from "./pages/DashboardTransactions.tsx";
 import DashboardSettings from "./pages/DashboardSettings.tsx";
 import DashboardProfile from "./pages/DashboardProfile.tsx";
+import DashboardVault from "./pages/DashboardVault.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/dashboard/transactions" element={<ProtectedRoute><DashboardTransactions /></ProtectedRoute>} />
             <Route path="/dashboard/settings" element={<ProtectedRoute><DashboardSettings /></ProtectedRoute>} />
             <Route path="/dashboard/profile" element={<ProtectedRoute><DashboardProfile /></ProtectedRoute>} />
+            <Route path="/dashboard/vault" element={<ProtectedRoute><DashboardVault /></ProtectedRoute>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

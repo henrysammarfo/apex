@@ -53,7 +53,7 @@ const DashboardHeader = ({ title }: DashboardHeaderProps) => {
   };
 
   return (
-    <header className="h-14 flex items-center justify-between border-b border-border px-4 shrink-0">
+    <header className="h-14 flex items-center justify-between border-b border-border px-4 shrink-0 sticky top-0 z-30 bg-background/80 backdrop-blur-md">
       <div className="flex items-center gap-3">
         <SidebarTrigger className="text-muted-foreground" />
         <div className="h-5 w-px bg-border" />
