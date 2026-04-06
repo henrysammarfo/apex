@@ -188,6 +188,365 @@ const PricingContent = () => (
   </>
 );
 
+/* ── Monitor Agent ── */
+const MonitorAgentContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The Monitor Agent is the first layer in the APEX pipeline. It continuously polls Chainlink price feeds and on-chain vault state to detect when portfolio drift exceeds configured thresholds.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Architecture</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Chainlink Oracles ──▶ Monitor Agent ──▶ Drift Calculator ──▶ Threshold Check
+                                                                  │
+                                                        ┌────────┴────────┐
+                                                   Drift > N%        Drift ≤ N%
+                                                        │                 │
+                                               Trigger Rebalance   Continue Polling`}</pre>
+    </div>
+
+    <InfoBanner>
+      The Monitor Agent runs on a configurable interval (default: every 30 seconds). It never executes trades directly — it only signals the Decision Agent when intervention is needed.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">How Drift Is Calculated</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Drift is the absolute difference between the target allocation and current allocation for each asset, summed across the portfolio. The Monitor Agent fetches real-time prices from Chainlink and computes each asset's current weight.
+    </p>
+    <CodeBlock language="typescript" code={`// Drift calculation logic
+interface AssetWeight {
+  token: string;
+  target: number;    // e.g. 0.40
+  current: number;   // e.g. 0.43
+  drift: number;     // |target - current|
+}
+
+function calculateDrift(weights: AssetWeight[]): number {
+  return weights.reduce((sum, w) => sum + Math.abs(w.target - w.current), 0);
+}
+
+// Monitor loop
+const POLL_INTERVAL = 30_000; // 30 seconds
+
+async function monitorLoop(vaultId: string, threshold: number) {
+  const prices = await chainlink.getLatestPrices();
+  const weights = computeWeights(vaultId, prices);
+  const totalDrift = calculateDrift(weights);
+
+  if (totalDrift > threshold) {
+    await signalDecisionAgent(vaultId, weights, prices);
+    console.log(\`Drift \${(totalDrift * 100).toFixed(1)}% > \${threshold * 100}% → rebalance triggered\`);
+  }
+}`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Chainlink Integration</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      The Monitor Agent reads from Chainlink's decentralized oracle network deployed on HashKey Chain. Each supported asset has a dedicated price feed contract.
+    </p>
+    <CodeBlock language="typescript" code={`import { ApexSDK } from '@apex/sdk';
+
+const apex = new ApexSDK({ apiKey: 'your-key', chain: 'hashkey-testnet' });
+
+// Get all monitored price feeds for a vault
+const feeds = await apex.monitor.getPriceFeeds('vault-123');
+// => [{ token: 'HSKT', feed: '0xABC...', price: 12.45, updatedAt: ... }, ...]
+
+// Subscribe to drift alerts
+apex.monitor.onDrift('vault-123', (event) => {
+  console.log(\`Drift detected: \${event.totalDrift}%\`);
+  console.log('Affected assets:', event.assets);
+});`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Configuration</h2>
+    <div className="overflow-x-auto">
+      <table className="w-full text-[13px] border-collapse">
+        <thead>
+          <tr className="border-b border-border/40">
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Parameter</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Default</th>
+            <th className="text-left py-2 px-3 text-foreground/80 font-semibold">Description</th>
+          </tr>
+        </thead>
+        <tbody className="text-foreground/60">
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">pollInterval</td><td className="py-2 px-3">30s</td><td className="py-2 px-3">How often the agent checks prices</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">driftThreshold</td><td className="py-2 px-3">5%</td><td className="py-2 px-3">Minimum drift to trigger rebalance</td></tr>
+          <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">stalePriceWindow</td><td className="py-2 px-3">120s</td><td className="py-2 px-3">Max age before a price feed is stale</td></tr>
+          <tr><td className="py-2 px-3 font-mono">alertChannels</td><td className="py-2 px-3">[]</td><td className="py-2 px-3">Webhook/Telegram endpoints for alerts</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </>
+);
+
+/* ── Decision Agent ── */
+const DecisionAgentContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The Decision Agent is the brain of APEX. When the Monitor Agent signals a drift event, the Decision Agent evaluates risk parameters, correlation matrices, and portfolio constraints to compute the optimal set of trades.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Architecture</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Rebalance Trigger
+       │
+       ▼
+Decision Agent ──▶ Risk Model ────────┐
+       │                              │
+       ├──▶ Correlation Matrix ───────┤──▶ Constraint Validation ──▶ Trade Plan
+       │                              │
+       └──▶ Portfolio Optimizer ──────┘`}</pre>
+    </div>
+
+    <InfoBanner>
+      The Decision Agent uses a mean-variance optimization model with configurable risk constraints. All trade plans are validated against vault limits before being forwarded to the Execution Agent.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Risk Model</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      The risk model evaluates Value-at-Risk (VaR), maximum drawdown constraints, and position concentration limits. It ensures no single trade can violate the vault's risk envelope.
+    </p>
+    <CodeBlock language="typescript" code={`interface RiskConstraints {
+  maxDrawdown: number;        // e.g. 0.15 (15%)
+  maxPositionSize: number;    // e.g. 0.50 (50% of portfolio)
+  minLiquidity: number;       // Minimum 24h volume in USD
+  correlationLimit: number;   // Max pairwise correlation
+}
+
+interface TradePlan {
+  trades: Array<{
+    action: 'buy' | 'sell';
+    token: string;
+    amount: string;
+    expectedPrice: number;
+    slippageTolerance: number;
+  }>;
+  expectedDriftAfter: number;
+  riskScore: number;  // 0-100
+}
+
+// Decision Agent generates an optimal trade plan
+const plan = await apex.decision.computeTradePlan({
+  vaultId: 'vault-123',
+  currentWeights: weights,
+  constraints: {
+    maxDrawdown: 0.15,
+    maxPositionSize: 0.50,
+    minLiquidity: 100_000,
+    correlationLimit: 0.85,
+  },
+});
+
+console.log('Trade plan:', plan.trades);
+console.log('Risk score:', plan.riskScore);`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Optimization Algorithm</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      APEX uses a constrained quadratic programming solver to minimize tracking error while respecting all risk bounds. The solver runs off-chain and produces a signed trade plan that the Execution Agent can verify.
+    </p>
+    <CodeBlock language="python" code={`# Python SDK — inspect decision reasoning
+from apex import ApexClient
+
+client = ApexClient(api_key="your-key")
+
+# Get the latest decision report for a vault
+report = client.decision.get_report("vault-123")
+
+print(f"Trigger:       {report.trigger_reason}")
+print(f"Assets moved:  {len(report.trades)}")
+print(f"Risk score:    {report.risk_score}/100")
+print(f"Expected drift after: {report.expected_drift_after:.2f}%")
+
+for trade in report.trades:
+    print(f"  {trade.action.upper()} {trade.amount} {trade.token} @ {trade.price}")`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Rejection Criteria</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      The Decision Agent will reject a rebalance if any of the following conditions are met:
+    </p>
+    <ul className="space-y-2 text-[13.5px] text-foreground/60 ml-1">
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Estimated gas cost exceeds 2% of trade value</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Slippage would exceed the configured tolerance</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Trade would violate max position size constraints</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Insufficient on-chain liquidity for the trade pair</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Cooldown period from last rebalance has not elapsed</li>
+    </ul>
+  </>
+);
+
+/* ── Execution Agent ── */
+const ExecutionAgentContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The Execution Agent takes validated trade plans from the Decision Agent and submits signed transactions to HashKey Chain. It handles gas optimization, slippage protection, and MEV-resistant submission strategies.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Architecture</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Trade Plan ──▶ Gas Estimation ──▶ MEV Protection ──▶ Tx Signing ──▶ HashKey Chain
+                                                                        │
+                                                              ┌────────┴────────┐
+                                                         Confirmed          Failed
+                                                              │                 │
+                                                    Settlement Agent    Retry (higher gas)`}</pre>
+    </div>
+
+    <InfoBanner>
+      The Execution Agent uses a private mempool relay on HashKey Chain to prevent front-running and sandwich attacks. All transactions are signed with the vault's dedicated execution key.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Transaction Lifecycle</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Each trade follows a strict lifecycle: estimation → protection → signing → submission → confirmation. Failed transactions are automatically retried with escalating gas prices up to a configurable limit.
+    </p>
+    <CodeBlock language="typescript" code={`// Execution Agent internals
+interface ExecutionConfig {
+  maxGasPrice: bigint;           // Wei ceiling
+  gasMultiplier: number;         // e.g. 1.2 (20% buffer)
+  maxRetries: number;            // Default: 3
+  retryDelayMs: number;          // Backoff between retries
+  mevProtection: boolean;        // Use private relay
+  slippageBps: number;           // Basis points (e.g. 50 = 0.5%)
+}
+
+// Monitor execution status
+const execution = await apex.execution.getStatus('tx-abc');
+console.log('Status:', execution.status);   // 'pending' | 'submitted' | 'confirmed' | 'failed'
+console.log('Gas used:', execution.gasUsed);
+console.log('Block:', execution.blockNumber);
+console.log('Retries:', execution.retryCount);`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">MEV Protection</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      MEV (Maximal Extractable Value) attacks like front-running and sandwich attacks can erode portfolio returns. APEX mitigates this through multiple strategies:
+    </p>
+    <ul className="space-y-2 text-[13.5px] text-foreground/60 ml-1 mb-6">
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span><strong className="text-foreground/80">Private relay</strong> — Transactions bypass the public mempool</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span><strong className="text-foreground/80">Commit-reveal</strong> — Large trades use a two-phase submission</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span><strong className="text-foreground/80">Order splitting</strong> — Large orders are split into smaller chunks</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span><strong className="text-foreground/80">Timing randomization</strong> — Submissions are jittered to avoid patterns</li>
+    </ul>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Gas Optimization</h2>
+    <CodeBlock language="typescript" code={`// Gas estimation with safety buffer
+const gasEstimate = await apex.execution.estimateGas({
+  vaultId: 'vault-123',
+  trades: plan.trades,
+});
+
+console.log('Estimated gas:', gasEstimate.totalGas);
+console.log('Estimated cost:', gasEstimate.costUSD);
+console.log('Recommended priority fee:', gasEstimate.priorityFee);
+
+// Override gas settings for a specific execution
+await apex.execution.execute({
+  planId: plan.id,
+  gasConfig: {
+    maxFeePerGas: '50000000000',   // 50 gwei
+    maxPriorityFee: '2000000000',  // 2 gwei
+  },
+});`} />
+  </>
+);
+
+/* ── Settlement Agent ── */
+const SettlementAgentContent = () => (
+  <>
+    <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
+      The Settlement Agent is the final layer. After transactions are confirmed on-chain, it handles compliance verification through NexaID, finalizes payments via HSP Protocol, updates the vault state, and emits events to configured notification channels.
+    </p>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Architecture</h2>
+    <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Confirmed Tx ──▶ Settlement Agent
+                       │
+                  NexaID KYC Check
+                       │
+                 ┌─────┴─────┐
+            Compliant    Non-Compliant
+                 │            │
+          HSP Settlement   Flag for Review
+                 │
+          Update Vault State ──▶ Emit Events ──▶ Webhooks / Telegram`}</pre>
+    </div>
+
+    <InfoBanner>
+      HSP (HashKey Settlement Protocol) enables atomic settlement of RWA trades with built-in compliance rails. Every settlement produces an immutable on-chain receipt.
+    </InfoBanner>
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Compliance Flow</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      Before any RWA settlement can finalize, the Settlement Agent verifies that both counterparties pass NexaID compliance checks. This includes KYC status, jurisdiction restrictions, and accredited investor verification for certain asset classes.
+    </p>
+    <CodeBlock language="typescript" code={`// Settlement with compliance checks
+interface SettlementReceipt {
+  id: string;
+  vaultId: string;
+  txHash: string;
+  status: 'settled' | 'pending_review' | 'rejected';
+  compliance: {
+    kycVerified: boolean;
+    jurisdiction: string;
+    accreditedInvestor: boolean;
+  };
+  hspReceipt: string;  // On-chain receipt hash
+  settledAt: string;    // ISO timestamp
+}
+
+// Get settlement history
+const settlements = await apex.settlement.list('vault-123', {
+  limit: 20,
+  status: 'settled',
+});
+
+settlements.forEach(s => {
+  console.log(\`\${s.id}: \${s.status} — \${s.hspReceipt}\`);
+});`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">HSP Protocol Integration</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      HSP (HashKey Settlement Protocol) provides atomic delivery-vs-payment for tokenized assets. The Settlement Agent interacts with HSP smart contracts to ensure trades are settled in a single atomic transaction.
+    </p>
+    <CodeBlock language="solidity" code={`// HSP Settlement Contract Interface (simplified)
+interface IHSPSettlement {
+    /// @notice Settle a trade atomically
+    /// @param buyer  Address of the buyer
+    /// @param seller Address of the seller
+    /// @param asset  RWA token contract address
+    /// @param amount Number of tokens to transfer
+    /// @param payment Stablecoin payment amount
+    function settle(
+        address buyer,
+        address seller,
+        address asset,
+        uint256 amount,
+        uint256 payment
+    ) external returns (bytes32 receiptId);
+
+    /// @notice Verify settlement receipt
+    function getReceipt(bytes32 id)
+        external view returns (Receipt memory);
+}`} />
+
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Event Notifications</h2>
+    <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
+      After settlement, the agent emits events to all configured channels. Supported notification targets include webhooks, Telegram bots, and email.
+    </p>
+    <CodeBlock language="typescript" code={`// Configure settlement notifications
+await apex.settlement.configureAlerts('vault-123', {
+  channels: [
+    { type: 'webhook', url: 'https://your-app.com/webhook' },
+    { type: 'telegram', chatId: '-100123456789' },
+    { type: 'email', address: 'alerts@yourfund.com' },
+  ],
+  events: [
+    'settlement.completed',
+    'settlement.failed',
+    'settlement.compliance_flag',
+  ],
+});`} />
+  </>
+);
+
 /* ── Generic sub-page content ── */
 const GenericContent = ({ slug }: { slug: string }) => {
   const label = findLabelForSlug(slug) || slug;
@@ -394,7 +753,11 @@ export const DocsPageContent = ({ activeTab, activeSlug }: DocsPageContentProps)
       {activeSlug === 'overview' && <OverviewContent />}
       {activeSlug === 'core-concepts' && <CoreConceptsContent />}
       {activeSlug === 'pricing' && <PricingContent />}
-      {!['quick-start', 'overview', 'core-concepts', 'pricing'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
+      {activeSlug === 'monitor-agent' && <MonitorAgentContent />}
+      {activeSlug === 'decision-agent' && <DecisionAgentContent />}
+      {activeSlug === 'execution-agent' && <ExecutionAgentContent />}
+      {activeSlug === 'settlement-agent' && <SettlementAgentContent />}
+      {!['quick-start', 'overview', 'core-concepts', 'pricing', 'monitor-agent', 'decision-agent', 'execution-agent', 'settlement-agent'].includes(activeSlug) && <GenericContent slug={activeSlug} />}
 
       {/* Bottom Navigation */}
       <div className="border-t border-border/30 pt-8 mt-8 flex items-center justify-between">
