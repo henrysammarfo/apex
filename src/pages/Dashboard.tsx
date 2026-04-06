@@ -1,9 +1,10 @@
 import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import PerformanceChart from '@/components/PerformanceChart';
 import { useNavigate } from 'react-router-dom';
+import OnboardingTour, { useOnboarding } from '@/components/OnboardingTour';
 import {
   TrendingUp,
   DollarSign,
