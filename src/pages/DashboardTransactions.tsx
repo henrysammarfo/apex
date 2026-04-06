@@ -2,7 +2,7 @@ import { SidebarProvider } from '@/components/ui/sidebar';
 import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Activity, CheckCircle2, Clock, ExternalLink, X, Copy, ArrowRight } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, ExternalLink, X, Copy, ArrowRight, Download } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 
