@@ -152,7 +152,7 @@ const Dashboard = () => {
                       </thead>
                       <tbody>
                         {holdings.map((h) => (
-                          <tr key={h.ticker} className="border-b border-border/50 hover:bg-foreground/[0.02] transition-colors">
+                          <tr key={h.ticker} onClick={() => navigate('/dashboard/portfolio')} className="border-b border-border/50 hover:bg-foreground/[0.04] transition-colors cursor-pointer group">
                             <td className="px-5 py-3.5">
                               <p className="font-inter font-medium text-foreground text-[13px]">{h.asset}</p>
                               <p className="font-inter text-[11px] text-muted-foreground">{h.ticker}</p>
