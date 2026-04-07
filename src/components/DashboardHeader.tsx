@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import { WalletConnectButton } from '@/components/WalletConnectButton';
 
 interface DashboardHeaderProps {
   title: string;
@@ -60,6 +61,7 @@ const DashboardHeader = ({ title }: DashboardHeaderProps) => {
         <h1 className="font-inter font-bold text-foreground text-sm">{title}</h1>
       </div>
       <div className="flex items-center gap-2">
+        <WalletConnectButton />
         <span className="flex items-center gap-1.5 text-[11px] font-inter text-primary bg-primary/10 rounded-full px-3 py-1">
           <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
           Agents Active

@@ -22,6 +22,7 @@ import {
 } from 'lucide-react';
 import { AgentIcon } from '@/components/icons/DashboardIcons';
 import { Button } from '@/components/ui/button';
+import { VaultLiveCard } from '@/components/VaultLiveCard';
 
 const kpis = [
   { label: 'Total AUM', value: '$12.4M', change: '+3.2%', up: true, icon: DollarSign, link: '/dashboard/portfolio' },
@@ -72,8 +73,11 @@ const Dashboard = () => {
 
           <main className="flex-1 overflow-y-auto p-6">
             <div className="max-w-[1400px] mx-auto space-y-6">
-              {/* Quick Actions */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <div className="lg:col-span-1">
+                  <VaultLiveCard />
+                </div>
+                <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <button onClick={() => navigate('/dashboard/portfolio?action=deposit')} className="liquid-glass rounded-xl p-5 text-left hover:bg-foreground/[0.04] transition-colors group cursor-pointer">
                   <div className="flex items-center gap-3 mb-2">
                     <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary/20 transition-colors">
@@ -107,6 +111,7 @@ const Dashboard = () => {
                     </div>
                   </div>
                 </button>
+                </div>
               </div>
 
               {/* KPI Cards */}
