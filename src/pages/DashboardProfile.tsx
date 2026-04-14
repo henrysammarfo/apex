@@ -8,13 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { User, Mail, Shield, CheckCircle2, Wallet, Link2, X, Eye, EyeOff, Key, Lock, Plus } from 'lucide-react';
+import { useAccount } from 'wagmi';
 
 const DashboardProfile = () => {
   const { user } = useAuth();
+  const { address, isConnected } = useAccount();
   const [name, setName] = useState(user?.name || '');
   const [saved, setSaved] = useState(false);
-  const [walletAddress, setWalletAddress] = useState('');
-  const [walletConnected, setWalletConnected] = useState(false);
 
   // Email linking (for wallet-only users)
   const [showEmailLink, setShowEmailLink] = useState(false);
@@ -41,17 +41,6 @@ const DashboardProfile = () => {
     e.preventDefault();
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
-  };
-
-  const handleConnectWallet = () => {
-    const mockAddress = '0x742d35Cc6634C0532925a3b844Bc9e7595f2bD68';
-    setWalletAddress(mockAddress);
-    setWalletConnected(true);
-  };
-
-  const handleDisconnectWallet = () => {
-    setWalletAddress('');
-    setWalletConnected(false);
   };
 
   const handleLinkEmail = (e: React.FormEvent) => {
@@ -153,18 +142,16 @@ const DashboardProfile = () => {
                 <h3 className="font-inter font-bold text-foreground text-[15px] mb-4 flex items-center gap-2">
                   <Wallet className="w-4 h-4 text-primary/60" /> Wallet
                 </h3>
-                {walletConnected ? (
+                {isConnected && address ? (
                   <div className="space-y-3">
                     <div className="flex items-center justify-between py-2">
                       <div>
                         <p className="font-inter text-sm text-foreground flex items-center gap-1.5">
                           <Link2 className="w-3.5 h-3.5 text-primary" /> Connected
                         </p>
-                        <p className="font-inter text-xs text-muted-foreground font-mono mt-1">{walletAddress}</p>
+                        <p className="font-inter text-xs text-muted-foreground font-mono mt-1">{address}</p>
                       </div>
-                      <Button variant="outline" size="sm" onClick={handleDisconnectWallet} className="font-inter text-xs text-destructive hover:text-destructive border-destructive/30 hover:border-destructive/60">
-                        Disconnect
-                      </Button>
+                      <span className="font-inter text-[11px] text-muted-foreground">Connected in header</span>
                     </div>
 
                     {/* Balance & Network Info */}
@@ -224,9 +211,7 @@ const DashboardProfile = () => {
                 ) : (
                   <div className="text-center py-4">
                     <p className="font-inter text-[13px] text-muted-foreground mb-4">Link your wallet for on-chain access and transaction signing on HashKey Chain (ID: 133).</p>
-                    <Button onClick={handleConnectWallet} className="font-inter font-bold gap-2">
-                      <Wallet className="w-4 h-4" /> Connect Wallet
-                    </Button>
+                    <p className="font-inter text-[12px] text-muted-foreground">Use the Connect Wallet button in the top header.</p>
                   </div>
                 )}
               </motion.div>

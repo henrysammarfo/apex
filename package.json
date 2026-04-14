@@ -13,12 +13,14 @@
     "test:watch": "vitest",
     "contracts:compile": "hardhat compile",
     "contracts:test": "hardhat test",
+    "smoke:all": "npm run contracts:compile && npm run contracts:test && node agent/smoke.mjs",
     "contracts:deploy:testnet": "hardhat run scripts/deploy.cjs --network hashkeyTestnet",
     "agent:decide": "node agent/decisionAgent.mjs",
     "agent:monitor": "node agent/monitorAgent.mjs",
     "agent:pipeline": "node agent/pipeline.mjs",
     "agent:execute": "node agent/executionAgent.mjs",
-    "agent:settlement": "node agent/settlementAgent.mjs"
+    "agent:settlement": "node agent/settlementAgent.mjs",
+    "agent:link-telegram": "node agent/linkTelegram.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",

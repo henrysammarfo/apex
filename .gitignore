@@ -28,3 +28,6 @@ typechain-types
 *.njsproj
 *.sln
 *.sw?
+
+# Local submission draft (do not push)
+SUBMISSION.md

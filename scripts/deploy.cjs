@@ -1,5 +1,6 @@
 /**
- * Deploy MockRWA x3 (fixed supply), DemoFaucet24h x3, PortfolioVault, DecisionLog, AgentRegistry.
+ * Deploy MockRWA x3 (fixed supply), DemoFaucet24h x3, PortfolioVault, DecisionLog, AgentRegistry,
+ * ApexIdentityRegistry, ApexSettlementRouter.
  *
  * Usage:
  *   npx hardhat run scripts/deploy.cjs --network hashkeyTestnet
@@ -68,6 +69,18 @@ async function main() {
   const registryAddr = await registry.getAddress();
   console.log("AgentRegistry:", registryAddr);
 
+  const ApexIdentityRegistry = await hre.ethers.getContractFactory("ApexIdentityRegistry");
+  const identity = await ApexIdentityRegistry.deploy(owner);
+  await identity.waitForDeployment();
+  const identityAddr = await identity.getAddress();
+  console.log("ApexIdentityRegistry:", identityAddr);
+
+  const ApexSettlementRouter = await hre.ethers.getContractFactory("ApexSettlementRouter");
+  const settlement = await ApexSettlementRouter.deploy(owner);
+  await settlement.waitForDeployment();
+  const settlementAddr = await settlement.getAddress();
+  console.log("ApexSettlementRouter:", settlementAddr);
+
   if (seed) {
     for (const t of [silver.token, mmf.token, sec.token]) {
       await (await t.approve(vaultAddr, SEED_EACH)).wait();
@@ -86,6 +99,8 @@ async function main() {
     await (await vault.deposit(sec.tokenAddr, SEED_EACH)).wait();
 
     await (await registry.setAgentAuthorization(agentAddr, true)).wait();
+    await (await identity.setVerifier(agentAddr, true)).wait();
+    await (await settlement.setOperator(agentAddr, true)).wait();
 
     console.log("Seeded vault with 1000 units each; targets 30% / 50% / 20%.");
     console.log(`Each token fixed supply: ${MAX_SUPPLY / WAD} (whole tokens); faucet pool per token: ${FAUCET_RESERVE / WAD}; claim / 24h: ${CLAIM_PER_24H / WAD}.`);
@@ -95,6 +110,8 @@ async function main() {
   console.log(`VAULT_CONTRACT=${vaultAddr}`);
   console.log(`DECISION_LOG_CONTRACT=${decisionLogAddr}`);
   console.log(`AGENT_REGISTRY_CONTRACT=${registryAddr}`);
+  console.log(`IDENTITY_REGISTRY_CONTRACT=${identityAddr}`);
+  console.log(`SETTLEMENT_ROUTER_CONTRACT=${settlementAddr}`);
   console.log(`MOCK_SILVER=${silver.tokenAddr}`);
   console.log(`MOCK_MMF=${mmf.tokenAddr}`);
   console.log(`MOCK_SEC=${sec.tokenAddr}`);

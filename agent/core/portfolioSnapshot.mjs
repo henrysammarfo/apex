@@ -37,7 +37,8 @@ export async function readOraclePrice(provider, feedAddress) {
  * @param {Map<string,string>} feedMap token -> feed
  * @param {boolean} useOracle
  */
-export async function buildPortfolioSnapshot(provider, vaultAddr, feedMap, useOracle) {
+export async function buildPortfolioSnapshot(provider, vaultAddr, feedMap, useOracle, opts = {}) {
+  const maxStalenessSec = Number(opts.maxStalenessSec ?? 21600); // default 6h
   const vault = new ethers.Contract(vaultAddr, VAULT_ABI, provider);
   const n = Number(await vault.assetsLength());
   const rows = [];
@@ -60,7 +61,12 @@ export async function buildPortfolioSnapshot(provider, vaultAddr, feedMap, useOr
     if (useOracle && feedMap.has(token)) {
       priceInfo = await readOraclePrice(provider, feedMap.get(token));
       if (priceInfo) {
-        weight = bal * priceInfo.price;
+        const stale = priceInfo.updatedAt > 0 && (Date.now() / 1000 - priceInfo.updatedAt > maxStalenessSec);
+        if (!stale) {
+          weight = bal * priceInfo.price;
+        } else {
+          priceInfo = { ...priceInfo, stale: true };
+        }
       }
     }
 
@@ -75,6 +81,7 @@ export async function buildPortfolioSnapshot(provider, vaultAddr, feedMap, useOr
       weight: weight.toString(),
       feed: feedMap.get(token) || null,
       priceUpdatedAt: priceInfo?.updatedAt ?? null,
+      oracleStale: Boolean(priceInfo && priceInfo.stale),
     });
   }
 

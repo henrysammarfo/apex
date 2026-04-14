@@ -11,6 +11,7 @@ import { ethers } from "ethers";
 import { loadAgentEnv, requireVault } from "./config/env.mjs";
 import { executeRebalanceWithAudit } from "./core/executionCore.mjs";
 import { logger } from "./lib/logger.mjs";
+import { createHealthyProvider } from "./lib/rpcProvider.mjs";
 
 async function main() {
   const env = loadAgentEnv();
@@ -31,7 +32,7 @@ async function main() {
     process.exit(1);
   }
 
-  const provider = new ethers.JsonRpcProvider(env.HASHKEY_TESTNET_RPC);
+  const provider = await createHealthyProvider(env.HASHKEY_TESTNET_RPC);
   const wallet = new ethers.Wallet(pk, provider);
   const vault = new ethers.Contract(vaultAddr, ["function agent() view returns (address)"], provider);
   const agentOnChain = await vault.agent();

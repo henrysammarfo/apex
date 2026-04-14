@@ -7,9 +7,12 @@ import { loadAgentEnv, requireVault } from "./config/env.mjs";
 import { buildPortfolioSnapshot, parseFeedMap } from "./core/portfolioSnapshot.mjs";
 import { createSupabaseRepo } from "./services/supabaseRepo.mjs";
 import { logger } from "./lib/logger.mjs";
+import { createHealthyProvider, rpcCandidates } from "./lib/rpcProvider.mjs";
 
 async function tick(env, provider, vault, feedMap, useOracle, repo) {
-  const snap = await buildPortfolioSnapshot(provider, vault, feedMap, useOracle);
+  const snap = await buildPortfolioSnapshot(provider, vault, feedMap, useOracle, {
+    maxStalenessSec: env.ORACLE_MAX_STALENESS_SEC,
+  });
   const action = snap.rebalanceNeeded ? "REBALANCE_NEEDED" : "MONITOR_TICK";
   logger.info("monitor.tick", { action, vault });
   if (repo) await repo.insertAgentLog(snap.vault, action, snap);
@@ -34,7 +37,7 @@ async function main() {
   let feedMap = new Map();
   if (useOracle) feedMap = parseFeedMap(env.TOKEN_PRICE_FEEDS_JSON);
 
-  const provider = new ethers.JsonRpcProvider(env.HASHKEY_TESTNET_RPC);
+  const provider = await createHealthyProvider(env.HASHKEY_TESTNET_RPC);
   const repo = createSupabaseRepo(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY);
 
   logger.info("monitor.start", {
@@ -42,6 +45,7 @@ async function main() {
     intervalSec: env.MONITOR_INTERVAL_SEC,
     oracle: useOracle,
     supabase: Boolean(repo),
+    rpcCandidates: rpcCandidates(env.HASHKEY_TESTNET_RPC),
   });
 
   await tick(env, provider, vault, feedMap, useOracle, repo);

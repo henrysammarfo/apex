@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Bot, Clock, CheckCircle2, AlertTriangle, Info, Zap, X, ExternalLink, Activity, Settings } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { fetchAgentLogs } from '@/lib/liveOps';
 
 type AgentName = 'Monitor' | 'Decision' | 'Execution' | 'Settlement';
 
@@ -35,7 +38,7 @@ const agentDetails: Record<AgentName, { description: string; tasks: string[]; up
   },
 };
 
-const logs = [
+const fallbackLogs = [
   { time: '2 min ago', agent: 'Monitor' as AgentName, event: 'Price drift detected on cBOND (+1.2% above threshold)', type: 'warning', detail: 'cBOND price: $102.34 | Target: $101.10 | Threshold: ±1.0%', txHash: '' },
   { time: '5 min ago', agent: 'Decision' as AgentName, event: 'Rebalance approved: sell 0.8% cBOND → buy tUSTB', type: 'success', detail: 'Confidence: 92% | Risk delta: -0.04 | Expected slippage: 0.02%', txHash: '' },
   { time: '5 min ago', agent: 'Execution' as AgentName, event: 'TX submitted: 0x7a3f...c291 (confirmed in 1.8s)', type: 'success', detail: 'Gas: 0.08 Gwei | Block: #4,291,037 | Chain: HSK L2', txHash: '0x7a3f...c291' },
@@ -56,7 +59,37 @@ const typeIcons: Record<string, typeof CheckCircle2> = {
 
 const AgentActivity = () => {
   const [selectedAgent, setSelectedAgent] = useState<AgentName | null>(null);
-  const [selectedLog, setSelectedLog] = useState<typeof logs[0] | null>(null);
+  const [selectedLog, setSelectedLog] = useState<typeof fallbackLogs[0] | null>(null);
+  const { data: liveLogs } = useQuery({
+    queryKey: ['live-agent-logs'],
+    queryFn: () => fetchAgentLogs(40),
+    refetchInterval: 15000,
+  });
+
+  const logs = (liveLogs && liveLogs.length > 0)
+    ? liveLogs.map((r): typeof fallbackLogs[0] => {
+      const details = (r.details ?? {}) as Record<string, unknown>;
+      const action = String(r.action || 'MONITOR_TICK');
+      const inferredAgent: AgentName =
+        action.includes('DECISION') ? 'Decision' :
+          action.includes('EXEC') ? 'Execution' :
+            action.includes('SETTLE') ? 'Settlement' : 'Monitor';
+      const drifts = Array.isArray(details.drifts) ? details.drifts as Array<Record<string, unknown>> : [];
+      const driftText = drifts
+        .filter((d) => Boolean(d.rebalanceCandidate))
+        .map((d) => `${String(d.symbol)} ${(Number(d.driftBps) / 100).toFixed(2)}%`)
+        .slice(0, 3)
+        .join(', ');
+      return {
+        time: `${formatDistanceToNowStrict(new Date(r.created_at))} ago`,
+        agent: inferredAgent,
+        event: action === 'REBALANCE_NEEDED' ? 'Rebalance needed' : action.replaceAll('_', ' '),
+        type: action === 'REBALANCE_NEEDED' ? 'warning' : 'info',
+        detail: driftText || 'Live pipeline event',
+        txHash: typeof details.txHash === 'string' ? details.txHash : '',
+      };
+    })
+    : fallbackLogs;
 
   const agentInfo = selectedAgent ? agentDetails[selectedAgent] : null;
 

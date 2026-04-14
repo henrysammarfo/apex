@@ -5,6 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Activity, CheckCircle2, Clock, ExternalLink, X, Copy, ArrowRight, Download, Plus, Minus, RefreshCw, Banknote } from 'lucide-react';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { formatDistanceToNowStrict } from 'date-fns';
+import { fetchDecisions } from '@/lib/liveOps';
 
 type TxType = 'Rebalance' | 'Yield' | 'Deposit' | 'Withdrawal';
 
@@ -28,7 +31,7 @@ interface Transaction {
   hspRef?: string;
 }
 
-const transactions: Transaction[] = [
+const fallbackTransactions: Transaction[] = [
   { hash: '0xd4e1...7f92', fullHash: '0xd4e17f92a3b4c5d6e7f8012a3b4c5d6e7f8a7f92', type: 'Deposit', from: 'Wallet', to: 'APEX Vault', amount: '$50,000', gas: '0.08 Gwei', time: '3 min ago', status: 'confirmed', block: '#4,291,103', timestamp: '2026-04-06 14:38:22 UTC', network: 'HashKey L2', confirmations: 42, nonce: 49, gasUsed: '52,118', slippage: 'N/A' },
   { hash: '0x7a3f...c291', fullHash: '0x7a3fc29183b4e1d5a6f2890ce4d7b3a1f8e62c291', type: 'Rebalance', from: 'cBOND', to: 'tUSTB', amount: '$99,200', gas: '0.08 Gwei', time: '5 min ago', status: 'confirmed', block: '#4,291,037', timestamp: '2026-04-06 14:32:18 UTC', network: 'HashKey L2', confirmations: 128, nonce: 47, gasUsed: '42,318', slippage: '0.02%' },
   { hash: '0x4e7b...3a12', fullHash: '0x4e7b3a12f5d6e7c8b9a0123d4e5f6a7b8c9d3a12', type: 'Yield', from: 'Vault', to: '4 wallets', amount: '$1,847', gas: '0.12 Gwei', time: '12 min ago', status: 'confirmed', block: '#4,291,042', timestamp: '2026-04-06 14:25:06 UTC', network: 'HashKey L2', confirmations: 148, nonce: 48, gasUsed: '78,432', slippage: 'N/A', hspRef: 'HSP-2026-04-0892' },
@@ -55,6 +58,37 @@ const Transactions = () => {
   const [selectedTx, setSelectedTx] = useState<Transaction | null>(null);
   const [copied, setCopied] = useState(false);
   const [filter, setFilter] = useState<string>('All');
+  const { data: liveDecisions } = useQuery({
+    queryKey: ['live-decisions'],
+    queryFn: () => fetchDecisions(100),
+    refetchInterval: 15000,
+  });
+
+  const transactions: Transaction[] = (liveDecisions && liveDecisions.length > 0)
+    ? liveDecisions.map((d) => {
+      const hash = d.tx_hash || d.id;
+      const shortHash = hash.startsWith('0x') && hash.length > 12 ? `${hash.slice(0, 6)}...${hash.slice(-4)}` : hash.slice(0, 10);
+      const txType: TxType = d.decision_type === 'rebalance' ? 'Rebalance' : 'Yield';
+      return {
+        hash: shortHash,
+        fullHash: hash,
+        type: txType,
+        from: d.direction === 'increase' ? 'Owner Wallet' : 'Vault',
+        to: d.direction === 'increase' ? 'APEX Vault' : 'Owner Wallet',
+        amount: d.amount_pct != null ? `${Number(d.amount_pct).toFixed(2)}%` : 'N/A',
+        gas: 'Live',
+        time: `${formatDistanceToNowStrict(new Date(d.executed_at))} ago`,
+        status: d.status || 'confirmed',
+        block: '-',
+        timestamp: new Date(d.executed_at).toISOString(),
+        network: 'HashKey L2',
+        confirmations: 0,
+        nonce: 0,
+        gasUsed: '-',
+        slippage: 'N/A',
+      };
+    })
+    : fallbackTransactions;
 
   const filtered = filter === 'All' ? transactions : transactions.filter(t => t.type === filter);
 

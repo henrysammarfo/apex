@@ -87,5 +87,38 @@ export function createSupabaseRepo(url, serviceRoleKey) {
       if (error) logger.error("supabase.pipeline_state upsert failed", { error: error.message });
       return !error;
     },
+
+    async getNotificationTargets(portfolioId, channelType = "telegram") {
+      const { data, error } = await db
+        .from("notification_channels")
+        .select("channel_target")
+        .eq("portfolio_id", portfolioId)
+        .eq("channel_type", channelType)
+        .eq("enabled", true);
+      if (error) {
+        logger.error("supabase.notification_channels read failed", { error: error.message });
+        return [];
+      }
+      return (data ?? [])
+        .map((r) => r.channel_target)
+        .filter((v) => typeof v === "string" && v.trim().length > 0);
+    },
+
+    async upsertNotificationChannel({ portfolioId, userId, channelType = "telegram", channelTarget, metadata = null, enabled = true }) {
+      const { error } = await db.from("notification_channels").upsert(
+        {
+          portfolio_id: portfolioId,
+          user_id: userId ?? null,
+          channel_type: channelType,
+          channel_target: channelTarget,
+          metadata,
+          enabled,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "portfolio_id,channel_type,channel_target" }
+      );
+      if (error) logger.error("supabase.notification_channels upsert failed", { error: error.message });
+      return !error;
+    },
   };
 }

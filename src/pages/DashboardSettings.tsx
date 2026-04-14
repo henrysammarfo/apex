@@ -3,12 +3,15 @@ import { DashboardSidebar } from '@/components/DashboardSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ShieldCheck, Bell, Sliders, Key, X, CheckCircle2, Pencil, Sun, Moon, Send } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { useTheme } from '@/hooks/useTheme';
+import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { fetchTelegramChannelForVault, upsertTelegramChannelForVault } from '@/lib/liveOps';
 
 interface Setting {
   label: string;
@@ -84,6 +87,7 @@ const defaultTelegramPrefs: TelegramPref[] = [
 ];
 
 const DashboardSettings = () => {
+  const { user } = useAuth();
   const [groups, setGroups] = useState(initialGroups);
   const [editModal, setEditModal] = useState<{ groupIdx: number; settingIdx: number } | null>(null);
   const [editValue, setEditValue] = useState('');
@@ -92,9 +96,41 @@ const DashboardSettings = () => {
   const [telegramPrefs, setTelegramPrefs] = useState(defaultTelegramPrefs);
   const [telegramEnabled, setTelegramEnabled] = useState(true);
   const [telegramChatId, setTelegramChatId] = useState('');
+  const [telegramSaving, setTelegramSaving] = useState(false);
+  const [telegramMsg, setTelegramMsg] = useState('');
+  const { data: telegramChannel } = useQuery({
+    queryKey: ['telegram-channel'],
+    queryFn: fetchTelegramChannelForVault,
+    refetchInterval: 20000,
+  });
+
+  // sync loaded channel target into input
+  useEffect(() => {
+    if (telegramChannel?.channel_target) {
+      setTelegramChatId(String(telegramChannel.channel_target));
+      setTelegramEnabled(Boolean(telegramChannel.enabled));
+    }
+  }, [telegramChannel]);
 
   const toggleTelegramPref = (index: number) => {
     setTelegramPrefs(prev => prev.map((p, i) => i === index ? { ...p, enabled: !p.enabled } : p));
+  };
+
+  const saveTelegramChannel = async () => {
+    setTelegramMsg('');
+    if (!telegramChatId.trim()) {
+      setTelegramMsg('Enter Telegram Chat ID');
+      return;
+    }
+    setTelegramSaving(true);
+    try {
+      await upsertTelegramChannelForVault(telegramChatId.trim(), user?.id);
+      setTelegramMsg('Telegram channel saved');
+    } catch (e: any) {
+      setTelegramMsg(e?.message || 'Failed to save Telegram channel');
+    } finally {
+      setTelegramSaving(false);
+    }
   };
 
   const openEdit = (gi: number, si: number) => {
@@ -251,6 +287,12 @@ const DashboardSettings = () => {
                         className="bg-secondary/50 border-border h-8 text-[12px] font-mono"
                       />
                       <p className="font-inter text-[10px] text-muted-foreground mt-1">Send /start to @ApexVaultBot to get your Chat ID</p>
+                      <div className="mt-2 flex items-center gap-2">
+                        <Button size="sm" onClick={saveTelegramChannel} disabled={telegramSaving} className="h-7 text-[11px]">
+                          {telegramSaving ? 'Saving...' : 'Save Telegram Route'}
+                        </Button>
+                        {telegramMsg && <p className="font-inter text-[11px] text-primary">{telegramMsg}</p>}
+                      </div>
                     </div>
                     <div className="divide-y divide-border/50">
                       {telegramPrefs.map((pref, i) => (

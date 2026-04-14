@@ -34,18 +34,7 @@ const Login = () => {
   };
 
   const handleWalletConnect = async () => {
-    setError('');
-    setLoading(true);
-    // Mock wallet auth — replace with real wallet provider
-    setTimeout(async () => {
-      const result = await signIn('wallet@apex.demo', 'wallet-auth');
-      setLoading(false);
-      if (result.error) {
-        setError(result.error);
-      } else {
-        navigate(from, { replace: true });
-      }
-    }, 1000);
+    setError('Wallet sign-in is not enabled yet. Use email auth for now.');
   };
 
   return (

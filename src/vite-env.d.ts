@@ -6,6 +6,8 @@ interface ImportMetaEnv {
   readonly VITE_PUBLIC_VAULT_ADDRESS?: string;
   /** Optional — https://cloud.walletconnect.com */
   readonly VITE_WALLETCONNECT_PROJECT_ID?: string;
+  readonly VITE_SUPABASE_URL?: string;
+  readonly VITE_SUPABASE_ANON_KEY?: string;
 }
 
 interface ImportMeta {

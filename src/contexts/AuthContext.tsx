@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { supabase } from '@/lib/supabaseClient';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 export interface User {
   id: string;
@@ -25,59 +27,79 @@ export const useAuth = () => {
   return ctx;
 };
 
-/**
- * Mock auth provider — swap internals with real Supabase calls when ready.
- * 
- * To integrate Supabase:
- * 1. Install @supabase/supabase-js
- * 2. Create a supabase client with your keys
- * 3. Replace signIn/signUp/signOut/resetPassword with supabase.auth.* calls
- * 4. Replace the useEffect with supabase.auth.onAuthStateChange
- */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const stored = localStorage.getItem('apex_auth_user');
-    if (stored) {
-      try { setUser(JSON.parse(stored)); } catch { /* ignore */ }
-    }
-    setLoading(false);
+  const mapUser = useCallback((u: SupabaseUser | null): User | null => {
+    if (!u) return null;
+    return {
+      id: u.id,
+      email: u.email ?? '',
+      name: (u.user_metadata?.name as string | undefined) ?? (u.user_metadata?.full_name as string | undefined),
+      avatar_url: u.user_metadata?.avatar_url as string | undefined,
+    };
   }, []);
 
-  const persist = (u: User | null) => {
-    if (u) localStorage.setItem('apex_auth_user', JSON.stringify(u));
-    else localStorage.removeItem('apex_auth_user');
-    setUser(u);
-  };
+  useEffect(() => {
+    let active = true;
+    supabase.auth.getSession().then(({ data }) => {
+      if (!active) return;
+      setUser(mapUser(data.session?.user ?? null));
+      setLoading(false);
+    });
 
-  const signIn = useCallback(async (email: string, _password: string) => {
-    // Mock: accept any credentials
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(mapUser(session?.user ?? null));
+      setLoading(false);
+    });
+
+    return () => {
+      active = false;
+      sub.subscription.unsubscribe();
+    };
+  }, [mapUser]);
+
+  const signIn = useCallback(async (email: string, password: string) => {
     if (!email) return { error: 'Email is required' };
-    persist({ id: crypto.randomUUID(), email, name: email.split('@')[0] });
+    if (!password) return { error: 'Password is required' };
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) return { error: error.message };
     return {};
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, name?: string) => {
     if (!email) return { error: 'Email is required' };
     if (!password || password.length < 6) return { error: 'Password must be at least 6 characters' };
-    persist({ id: crypto.randomUUID(), email, name: name || email.split('@')[0] });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          name: name || email.split('@')[0],
+        },
+      },
+    });
+    if (error) return { error: error.message };
     return {};
   }, []);
 
   const signOut = useCallback(async () => {
-    persist(null);
+    await supabase.auth.signOut();
   }, []);
 
   const resetPassword = useCallback(async (email: string) => {
     if (!email) return { error: 'Email is required' };
-    // Mock: always succeed
+    const redirectTo = `${window.location.origin}/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    if (error) return { error: error.message };
     return {};
   }, []);
 
   const updatePassword = useCallback(async (password: string) => {
     if (!password || password.length < 6) return { error: 'Password must be at least 6 characters' };
+    const { error } = await supabase.auth.updateUser({ password });
+    if (error) return { error: error.message };
     return {};
   }, []);
 

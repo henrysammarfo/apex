@@ -19,14 +19,17 @@ export const AgentEnvSchema = z.object({
     .transform((s) => (s && s.trim() ? s.trim() : undefined)),
 
   MONITOR_INTERVAL_SEC: z.coerce.number().int().min(10).max(3600).default(60),
+  MONITOR_ALERT_MIN_INTERVAL_SEC: z.coerce.number().int().min(10).max(86400).default(300),
   USE_ORACLE_PRICING: z.preprocess(
     (v) => (v === undefined || v === "" ? "0" : String(v)),
     z.enum(["0", "1", "true", "false"]).transform((v) => v === "1" || v === "true")
   ),
   TOKEN_PRICE_FEEDS_JSON: z.string().optional().default(""),
+  ORACLE_MAX_STALENESS_SEC: z.coerce.number().int().min(30).max(86400).default(21600),
 
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
+  DECISION_MODE: z.enum(["ai", "deterministic", "hybrid"]).default("hybrid"),
 
   SUPABASE_URL: z
     .string()
