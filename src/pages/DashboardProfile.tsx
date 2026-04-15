@@ -11,16 +11,20 @@ import { User, Mail, Shield, CheckCircle2, Wallet, Link2, X, Eye, EyeOff, Key, L
 import { useAccount } from 'wagmi';
 
 const DashboardProfile = () => {
-  const { user } = useAuth();
+  const { user, linkWalletEmail, updateProfileName } = useAuth();
   const { address, isConnected } = useAccount();
   const [name, setName] = useState(user?.name || '');
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState('');
 
   // Email linking (for wallet-only users)
   const [showEmailLink, setShowEmailLink] = useState(false);
   const [linkEmail, setLinkEmail] = useState('');
   const [linkEmailPassword, setLinkEmailPassword] = useState('');
   const [emailLinked, setEmailLinked] = useState(false);
+  const [linkingEmail, setLinkingEmail] = useState(false);
+  const [linkEmailError, setLinkEmailError] = useState('');
+  const [linkEmailInfo, setLinkEmailInfo] = useState('');
 
   // Password modal
   const [showPasswordModal, setShowPasswordModal] = useState(false);
@@ -39,19 +43,39 @@ const DashboardProfile = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setSaveError('');
+    updateProfileName(name).then((result) => {
+      if (result.error) {
+        setSaveError(result.error);
+        return;
+      }
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    });
   };
 
   const handleLinkEmail = (e: React.FormEvent) => {
     e.preventDefault();
-    if (linkEmail && linkEmailPassword.length >= 8) {
-      setEmailLinked(true);
-      setTimeout(() => {
-        setShowEmailLink(false);
-        setEmailLinked(false);
-      }, 1500);
-    }
+    setLinkEmailError('');
+    setLinkEmailInfo('');
+    setLinkingEmail(true);
+    linkWalletEmail(linkEmail, linkEmailPassword)
+      .then((result) => {
+        if (result.error) {
+          setLinkEmailError(result.error);
+          return;
+        }
+        setEmailLinked(true);
+        setLinkEmailInfo(result.message || 'Email linked successfully.');
+        setTimeout(() => {
+          setShowEmailLink(false);
+          setEmailLinked(false);
+          setLinkEmail('');
+          setLinkEmailPassword('');
+          setLinkEmailInfo('');
+        }, 1800);
+      })
+      .finally(() => setLinkingEmail(false));
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {
@@ -133,6 +157,7 @@ const DashboardProfile = () => {
                         <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Saved</span>
                       ) : 'Save Changes'}
                     </Button>
+                    {saveError && <p className="text-destructive text-[12px] font-inter">{saveError}</p>}
                   </div>
                 </form>
               </motion.div>
@@ -202,7 +227,13 @@ const DashboardProfile = () => {
                           </p>
                           <p className="font-inter text-xs text-muted-foreground">Set up email login for this account</p>
                         </div>
-                        <Button variant="outline" size="sm" onClick={() => setShowEmailLink(true)} className="font-inter text-xs gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowEmailLink(true)}
+                          className="font-inter text-xs gap-1"
+                          disabled={user?.auth_method === 'email'}
+                        >
                           <Plus className="w-3 h-3" /> Link
                         </Button>
                       </div>
@@ -294,8 +325,10 @@ const DashboardProfile = () => {
                   <Label className="text-foreground text-xs font-inter uppercase tracking-wider">Set Password</Label>
                   <Input type="password" value={linkEmailPassword} onChange={(e) => setLinkEmailPassword(e.target.value)} placeholder="Min 8 characters" required className="bg-secondary/50 border-border" />
                 </div>
+                {linkEmailError && <p className="text-destructive text-[12px] font-inter">{linkEmailError}</p>}
+                {linkEmailInfo && <p className="text-primary text-[12px] font-inter">{linkEmailInfo}</p>}
                 <Button type="submit" className="w-full font-inter font-bold">
-                  {emailLinked ? <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Email Linked</span> : 'Link Email'}
+                  {linkingEmail ? 'Linking...' : emailLinked ? <span className="flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Email Linked</span> : 'Link Email'}
                 </Button>
               </form>
             </motion.div>

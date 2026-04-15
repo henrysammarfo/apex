@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -6,10 +6,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Zap, Eye, EyeOff, Wallet, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAccount, useConnect } from 'wagmi';
+import { hashKeyTestnet } from '@/lib/hashkeyChain';
 
 const Signup = () => {
-  const { signUp, signIn } = useAuth();
+  const { signUp } = useAuth();
   const navigate = useNavigate();
+  const { isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
 
   const [authMethod, setAuthMethod] = useState<'email' | 'wallet'>('email');
   const [name, setName] = useState('');
@@ -18,11 +22,19 @@ const Signup = () => {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [info, setInfo] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (authMethod === 'wallet' && isConnected) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [authMethod, isConnected, navigate]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setInfo('');
     if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
@@ -32,13 +44,32 @@ const Signup = () => {
     setLoading(false);
     if (result.error) {
       setError(result.error);
+    } else if (result.needsEmailConfirmation) {
+      setInfo(result.message || 'Check your email to confirm your account before signing in.');
     } else {
+      setInfo(result.message || 'Account created successfully.');
       navigate('/dashboard', { replace: true });
     }
   };
 
   const handleWalletConnect = async () => {
-    setError('Wallet sign-up is not enabled yet. Use email sign-up for now.');
+    setError('');
+    setInfo('');
+    if (isConnected) {
+      navigate('/dashboard', { replace: true });
+      return;
+    }
+    const preferred = connectors.find((c) => c.id === 'injected' || c.type === 'injected') ?? connectors[0];
+    if (!preferred) {
+      setError('No wallet connector is available. Install MetaMask or enable WalletConnect.');
+      return;
+    }
+    try {
+      connect({ connector: preferred, chainId: hashKeyTestnet.id });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Wallet connection failed.';
+      setError(msg);
+    }
   };
 
   return (
@@ -109,6 +140,7 @@ const Signup = () => {
               </div>
 
               {error && <p className="text-destructive text-sm font-inter text-center">{error}</p>}
+              {info && <p className="text-primary text-sm font-inter text-center">{info}</p>}
 
               <Button type="submit" className="w-full font-inter font-bold" disabled={loading}>
                 {loading ? 'Creating account...' : 'Create Account'}
@@ -120,9 +152,10 @@ const Signup = () => {
                 Connect your wallet to create an account. You can set up your email and password in your profile later.
               </p>
               {error && <p className="text-destructive text-sm font-inter text-center">{error}</p>}
-              <Button onClick={handleWalletConnect} className="w-full font-inter font-bold gap-2" disabled={loading}>
+              {info && <p className="text-primary text-sm font-inter text-center">{info}</p>}
+              <Button onClick={handleWalletConnect} className="w-full font-inter font-bold gap-2" disabled={loading || isPending}>
                 <Wallet className="w-4 h-4" />
-                {loading ? 'Connecting...' : 'Connect Wallet'}
+                {isPending ? 'Connecting...' : isConnected ? 'Continue to Dashboard' : 'Connect Wallet'}
               </Button>
               <p className="font-inter text-[11px] text-muted-foreground text-center">
                 Supports MetaMask, WalletConnect, and Coinbase Wallet.

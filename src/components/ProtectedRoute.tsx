@@ -1,8 +1,10 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAccount } from 'wagmi';
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
+  const { isConnected } = useAccount();
   const location = useLocation();
 
   if (loading) {
@@ -13,7 +15,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!user) {
+  if (!user && !isConnected) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -65,12 +65,12 @@ const agents = [
     ),
     layer: '04',
     title: 'Settlement Agent',
-    subtitle: 'HSP + NexaID',
-    description: 'Routes yield payments through HSP for compliant cross-border settlement. Handles multi-currency disbursement to KYC-verified institutional recipients.',
+    subtitle: 'Apex Settlement + Identity',
+    description: 'Routes withdrawals and settlement actions through Apex Settlement Router with on-chain attestations from Apex Identity Registry. External HSP/NexaID adapters remain optional.',
     stats: [
-      { label: 'Settlement', value: 'T+0' },
+      { label: 'Settlement', value: 'On-chain' },
       { label: 'Currencies', value: '6+' },
-      { label: 'KYC', value: 'NexaID' },
+      { label: 'Identity', value: 'Apex ID' },
     ],
   },
 ];

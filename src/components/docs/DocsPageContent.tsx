@@ -14,14 +14,25 @@ const QuickStartContent = () => (
       </a>
     </InfoBanner>
 
-    <Step num={1} title="Connect Your Wallet">
+    <Step num={1} title="Fund Wallet (USDC + HSK Gas)">
+      <p className="text-[13.5px] text-foreground/70 leading-relaxed">
+        APEX test flow is USDC-first. Fund your wallet with testnet USDC for deposits and a small HSK balance for gas.
+      </p>
+      <ul className="list-disc list-inside space-y-1.5 text-[13px] text-foreground/60 ml-1">
+        <li>Claim testnet USDC from the faucet linked on the landing page.</li>
+        <li>Claim HSK from HashKey faucet for transaction gas.</li>
+        <li>Mock RWA tokens are managed by APEX vault ops (not required for end-user claiming).</li>
+      </ul>
+    </Step>
+
+    <Step num={2} title="Connect Your Wallet">
       <p className="text-[13.5px] text-foreground/70 leading-relaxed">
         Connect a HashKey Chain-compatible wallet to get started. APEX supports MetaMask, WalletConnect, and native HashKey wallets.
       </p>
       <ul className="list-disc list-inside space-y-1.5 text-[13px] text-foreground/60 ml-1">
         <li>Navigate to the <Link to="/login" className="text-primary hover:underline">APEX Dashboard</Link></li>
         <li>Click "Connect Wallet" and select your provider</li>
-        <li>Complete NexaID verification (KYC) if required</li>
+        <li>Optional: add identity attestations via Apex Identity Registry if needed</li>
         <li>Your wallet is now linked to APEX</li>
       </ul>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
@@ -42,13 +53,13 @@ const QuickStartContent = () => (
               <path d="M9 12l2 2 4-4" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className="flex-1"><span className="text-[13px] font-medium text-foreground">NexaID Verification</span></div>
+          <div className="flex-1"><span className="text-[13px] font-medium text-foreground">Apex Identity Registry</span></div>
           <ArrowUpRight size={14} className="text-muted-foreground group-hover:text-primary transition-colors" />
         </a>
       </div>
     </Step>
 
-    <Step num={2} title="Understand the Agent Architecture">
+    <Step num={3} title="Understand the Agent Architecture">
       <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
         APEX operates a 4-layer autonomous agent system. Each agent handles a specific phase of portfolio management.
       </p>
@@ -57,7 +68,7 @@ const QuickStartContent = () => (
       </div>
     </Step>
 
-    <Step num={3} title="Configure Your Vault">
+    <Step num={4} title="Configure Your Vault">
       <p className="text-[13.5px] text-foreground/70 leading-relaxed">
         Set your risk parameters and allocation targets. The vault is your personalized portfolio container managed by APEX agents.
       </p>
@@ -89,7 +100,7 @@ console.log('Vault created:', vault.id);`}
       </InfoBanner>
     </Step>
 
-    <Step num={4} title="Deposit & Activate">
+    <Step num={5} title="Deposit & Activate">
       <p className="text-[13.5px] text-foreground/70 leading-relaxed">
         Deposit funds into your vault and the agents will automatically begin managing your portfolio.
       </p>
@@ -109,7 +120,7 @@ console.log('Portfolio value:', status.totalValue);`}
       />
     </Step>
 
-    <Step num={5} title="Choose Your Integration">
+    <Step num={6} title="Choose Your Integration">
       <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
         APEX provides multiple SDKs and APIs. Select the best fit for your tech stack.
       </p>
@@ -129,7 +140,7 @@ const OverviewContent = () => (
     <ul className="space-y-3 text-[13.5px] text-foreground/60">
       <li className="flex gap-3"><span className="text-primary font-bold">•</span>Fully autonomous portfolio management with human-readable audit trails</li>
       <li className="flex gap-3"><span className="text-primary font-bold">•</span>Institutional-grade risk management with configurable drawdown limits</li>
-      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Built-in compliance via NexaID KYC and HSP Protocol settlement</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Built-in compliance via Apex Identity Registry and Apex Settlement Router</li>
       <li className="flex gap-3"><span className="text-primary font-bold">•</span>Optimized for HashKey Chain's low-cost, high-throughput environment</li>
     </ul>
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">How It Works</h2>
@@ -452,30 +463,31 @@ await apex.execution.execute({
 const SettlementAgentContent = () => (
   <>
     <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
-      The Settlement Agent is the final layer. After transactions are confirmed on-chain, it handles compliance verification through NexaID, finalizes payments via HSP Protocol, updates the vault state, and emits events to configured notification channels.
+      The Settlement Agent is the final layer. After transactions are confirmed on-chain, it applies Apex Identity Registry checks, routes settlements through Apex Settlement Router, updates vault state, and emits notifications.
     </p>
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Architecture</h2>
     <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
       <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Confirmed Tx ──▶ Settlement Agent
                        │
-                  NexaID KYC Check
+             Apex Identity Check
                        │
                  ┌─────┴─────┐
-            Compliant    Non-Compliant
+            Eligible     Not Eligible
                  │            │
-          HSP Settlement   Flag for Review
+          Apex Settlement   Flag for Review
+              Routing
                  │
           Update Vault State ──▶ Emit Events ──▶ Webhooks / Telegram`}</pre>
     </div>
 
     <InfoBanner>
-      HSP (HashKey Settlement Protocol) enables atomic settlement of RWA trades with built-in compliance rails. Every settlement produces an immutable on-chain receipt.
+      Apex Settlement Router is the production default. HSP/NexaID remain optional adapter paths for teams that later receive partner credentials.
     </InfoBanner>
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Compliance Flow</h2>
     <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
-      Before any RWA settlement can finalize, the Settlement Agent verifies that both counterparties pass NexaID compliance checks. This includes KYC status, jurisdiction restrictions, and accredited investor verification for certain asset classes.
+      Before settlement finalizes, the agent validates identity and eligibility conditions from Apex Identity Registry plus route-level constraints configured for the vault.
     </p>
     <CodeBlock language="typescript" code={`// Settlement with compliance checks
 interface SettlementReceipt {
@@ -488,7 +500,7 @@ interface SettlementReceipt {
     jurisdiction: string;
     accreditedInvestor: boolean;
   };
-  hspReceipt: string;  // On-chain receipt hash
+  settlementReceipt: string;  // On-chain receipt hash
   settledAt: string;    // ISO timestamp
 }
 
@@ -499,12 +511,12 @@ const settlements = await apex.settlement.list('vault-123', {
 });
 
 settlements.forEach(s => {
-  console.log(\`\${s.id}: \${s.status} — \${s.hspReceipt}\`);
+  console.log(\`\${s.id}: \${s.status} — \${s.settlementReceipt}\`);
 });`} />
 
-    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">HSP Protocol Integration</h2>
+    <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Apex Settlement Router Integration</h2>
     <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
-      HSP (HashKey Settlement Protocol) provides atomic delivery-vs-payment for tokenized assets. The Settlement Agent interacts with HSP smart contracts to ensure trades are settled in a single atomic transaction.
+      Apex Settlement Router provides provider-abstracted settlement routing. Current production flow runs through Apex rails, with optional provider adapters available.
     </p>
     <CodeBlock language="solidity" code={`// HSP Settlement Contract Interface (simplified)
 interface IHSPSettlement {
@@ -557,7 +569,7 @@ const CreatingVaultContent = () => (
     <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Prerequisites</h2>
     <ul className="space-y-2 text-[13.5px] text-foreground/60 ml-1 mb-6">
       <li className="flex gap-3"><span className="text-primary font-bold">•</span>A HashKey Chain-compatible wallet (MetaMask, WalletConnect, or native HashKey wallet)</li>
-      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Completed NexaID KYC verification</li>
+      <li className="flex gap-3"><span className="text-primary font-bold">•</span>Optional Apex Identity Registry attestation (if your vault policy requires it)</li>
       <li className="flex gap-3"><span className="text-primary font-bold">•</span>Sufficient HSK for gas fees (~0.01 HSK for vault deployment)</li>
     </ul>
 
@@ -696,7 +708,7 @@ const RebalancingContent = () => (
                       (Monitor)         (Decision)       (Execution)   (Settlement)
                          │                   │                │              │
                     Poll every 30s    Risk validation    Gas + MEV     Compliance
-                    Chainlink feeds   Optimization       Private relay  HSP atomic`}</pre>
+                    Chainlink feeds   Optimization       Private relay  Apex route`}</pre>
     </div>
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Drift Calculation Example</h2>
@@ -783,7 +795,7 @@ const receipt = await apex.vault.deposit({
 console.log('Deposit tx:', receipt.txHash);`} />
 
     <InfoBanner>
-      NexaID verification is required before your first deposit. Subsequent deposits from the same verified wallet are processed immediately.
+      Deposit flow is USDC-first on testnet. Mock RWA tokens are managed by Apex vault operations and are not required as a user claim step.
     </InfoBanner>
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Withdrawals</h2>
@@ -811,7 +823,7 @@ const yieldWithdrawal = await apex.vault.withdraw({
   destination: { type: 'wallet' },  // On-chain to your wallet
 });
 
-// Partial withdrawal to bank via HSP
+// Partial withdrawal to bank via Apex Settlement Router
 const bankWithdrawal = await apex.vault.withdraw({
   vaultId: 'vault-123',
   mode: 'partial',
@@ -826,7 +838,7 @@ const bankWithdrawal = await apex.vault.withdraw({
   },
 });
 
-console.log('Settlement via HSP:', bankWithdrawal.hspReceiptId);`} />
+console.log('Settlement route receipt:', bankWithdrawal.settlementReceiptId);`} />
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Destination Routing</h2>
     <div className="overflow-x-auto">
@@ -841,7 +853,7 @@ console.log('Settlement via HSP:', bankWithdrawal.hspReceiptId);`} />
         </thead>
         <tbody className="text-foreground/60">
           <tr className="border-b border-border/20"><td className="py-2 px-3">On-chain wallet</td><td className="py-2 px-3">Direct transfer</td><td className="py-2 px-3">~30 seconds</td><td className="py-2 px-3">Gas only</td></tr>
-          <tr><td className="py-2 px-3">Bank (cross-border)</td><td className="py-2 px-3">HSP Protocol</td><td className="py-2 px-3">1–3 business days</td><td className="py-2 px-3">0.1% + gas</td></tr>
+          <tr><td className="py-2 px-3">Bank (cross-border)</td><td className="py-2 px-3">Apex Settlement Router</td><td className="py-2 px-3">Route dependent</td><td className="py-2 px-3">Provider + gas</td></tr>
         </tbody>
       </table>
     </div>
@@ -870,7 +882,7 @@ const HashKeyChainContent = () => (
           <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">Block Time</td><td className="py-2 px-3">~2 seconds</td></tr>
           <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">Consensus</td><td className="py-2 px-3">Optimistic Rollup</td></tr>
           <tr className="border-b border-border/20"><td className="py-2 px-3 font-semibold text-foreground/70">EVM Compatible</td><td className="py-2 px-3">Yes (Solidity ^0.8.x)</td></tr>
-          <tr><td className="py-2 px-3 font-semibold text-foreground/70">RPC Endpoint</td><td className="py-2 px-3 font-mono">https://rpc.hashkey.com</td></tr>
+          <tr><td className="py-2 px-3 font-semibold text-foreground/70">RPC Endpoint</td><td className="py-2 px-3 font-mono">https://testnet.hsk.xyz</td></tr>
         </tbody>
       </table>
     </div>
@@ -880,11 +892,11 @@ const HashKeyChainContent = () => (
 await window.ethereum.request({
   method: 'wallet_addEthereumChain',
   params: [{
-    chainId: '0x85',  // 133 in hex
-    chainName: 'HashKey Chain',
+    chainId: '0x85',  // 133
+    chainName: 'HashKey Chain Testnet',
     nativeCurrency: { name: 'HSK', symbol: 'HSK', decimals: 18 },
-    rpcUrls: ['https://rpc.hashkey.com'],
-    blockExplorerUrls: ['https://explorer.hashkey.com'],
+    rpcUrls: ['https://testnet.hsk.xyz'],
+    blockExplorerUrls: ['https://hashkey.blockscout.com'],
   }],
 });`} />
 
@@ -892,8 +904,8 @@ await window.ethereum.request({
     <CodeBlock language="bash" code={`# Mainnet (Chain ID 133)
 VaultFactory:    0x7A1B...3F9E
 AgentRegistry:   0x4C2D...8A1B
-HSPSettlement:   0x9E3F...2C4D
-NexaIDVerifier:  0x1B5A...7E3F
+ApexSettlementRouter:   0x9E3F...2C4D
+ApexIdentityRegistry:   0x1B5A...7E3F
 
 # Testnet (Chain ID 13300)
 VaultFactory:    0xTEST...1234
@@ -981,12 +993,12 @@ apex.chainlink.subscribe('HSK/USD', (update) => {
 const NexaIdKycContent = () => (
   <>
     <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
-      NexaID provides on-chain identity verification for APEX vaults. It ensures that all participants meet regulatory requirements before accessing RWA markets.
+      Apex Identity Registry provides on-chain identity attestations for APEX vaults. It ensures participants can be eligibility-checked before accessing configured vault actions.
     </p>
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">Verification Flow</h2>
     <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
-      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`User Wallet ──▶ NexaID Widget ──▶ Document Upload ──▶ Verification
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`User Wallet ──▶ Identity Claim ──▶ Verifier Review ──▶ On-chain Attestation
                                                          │
                                                ┌────────┴────────┐
                                            Approved          Rejected
@@ -997,10 +1009,10 @@ const NexaIdKycContent = () => (
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Integration</h2>
     <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
-      NexaID issues a Soulbound Token (SBT) to verified wallets. APEX vault contracts check for this token before allowing deposits or withdrawals.
+      Apex Identity Registry stores attestations for verified wallets. APEX vault/pipeline rules can enforce these attestations before configured actions.
     </p>
-    <CodeBlock language="typescript" code={`// Check NexaID verification status
-const verification = await apex.nexaid.getStatus(walletAddress);
+    <CodeBlock language="typescript" code={`// Check Apex Identity verification status
+const verification = await apex.identity.getStatus(walletAddress);
 
 console.log('KYC Status:', verification.status);    // 'verified' | 'pending' | 'expired'
 console.log('Level:', verification.level);           // 'basic' | 'accredited'
@@ -1015,7 +1027,7 @@ const session = await apex.nexaid.createSession({
   level: 'accredited',  // Required for RWA access
 });
 
-// Redirect user to NexaID
+// Redirect user to your hosted identity flow
 window.location.href = session.verificationUrl;`} />
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Verification Levels</h2>
@@ -1033,7 +1045,7 @@ window.location.href = session.verificationUrl;`} />
     </div>
 
     <InfoBanner>
-      NexaID SBTs expire after 12 months. APEX agents will pause vault operations and notify you 30 days before expiration. Re-verification is a streamlined process.
+      Identity attestations should be reviewed and renewed per policy. APEX agents can pause configured actions when attestations are missing/expired.
     </InfoBanner>
   </>
 );
@@ -1042,14 +1054,14 @@ window.location.href = session.verificationUrl;`} />
 const HspProtocolContent = () => (
   <>
     <p className="text-[14px] text-foreground/70 leading-relaxed mb-6">
-      HSP (HashKey Settlement Protocol) enables atomic delivery-vs-payment settlement for tokenized assets. APEX uses HSP for all RWA trade settlements and cross-border bank withdrawals.
+      Apex Settlement Router enables on-chain settlement routing for tokenized assets. APEX uses it for withdrawal/settlement flows now, with HSP as an optional future adapter.
     </p>
 
-    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">How HSP Works</h2>
+    <h2 className="font-inter font-bold text-[22px] text-foreground mb-4">How Apex Settlement Router Works</h2>
     <div className="rounded-xl border border-border/40 bg-card/50 p-5 mb-6 overflow-x-auto">
-      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Trade Confirmed ──▶ HSP Escrow ──▶ Compliance Gate ──▶ Atomic Settlement
+      <pre className="text-[13px] text-foreground/70 font-mono leading-relaxed whitespace-pre">{`Trade Confirmed ──▶ Route Selection ──▶ Compliance Gate ──▶ Settlement
                         │                │                    │
-                   Lock assets     NexaID check        Simultaneous:
+                   Lock assets   Identity check        Simultaneous:
                    in escrow      Jurisdiction check    Asset transfer
                                   Sanction screening    Payment release
                                                         Receipt minted`}</pre>
@@ -1090,7 +1102,7 @@ interface IHSPSettlement {
 
     <h2 className="font-inter font-bold text-[22px] text-foreground mt-8 mb-4">Cross-Border Settlements</h2>
     <p className="text-[13.5px] text-foreground/70 leading-relaxed mb-4">
-      For bank withdrawals, HSP coordinates with licensed payment rails to convert on-chain assets to fiat and wire to the destination bank account.
+      For bank withdrawals, Apex Settlement Router coordinates with configured providers to convert on-chain assets to fiat and route to destination rails.
     </p>
     <CodeBlock language="typescript" code={`// Initiate a cross-border settlement
 const settlement = await apex.hsp.initiate({
@@ -1109,7 +1121,7 @@ const settlement = await apex.hsp.initiate({
   },
 });
 
-console.log('HSP Receipt:', settlement.receiptId);
+console.log('Settlement Receipt:', settlement.receiptId);
 console.log('Status:', settlement.status);            // 'processing'
 console.log('Est. arrival:', settlement.estimatedAt);  // '2026-04-09T14:00:00Z'
 
@@ -1119,7 +1131,7 @@ console.log('Steps completed:', status.completedSteps);
 console.log('Current step:', status.currentStep);`} />
 
     <InfoBanner>
-      HSP settlements are final and irreversible once the atomic swap completes. Cross-border wire transfers typically settle within 1–3 business days depending on the destination country.
+      Settlement finality and timing depend on the selected route/provider. Always show route status to users in the dashboard.
     </InfoBanner>
   </>
 );
@@ -1595,7 +1607,7 @@ const WebhooksContent = () => (
           <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">withdrawal.completed</td><td className="py-2 px-3">Withdrawal settled to destination</td></tr>
           <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">agent.alert</td><td className="py-2 px-3">Agent raised a warning or error</td></tr>
           <tr className="border-b border-border/20"><td className="py-2 px-3 font-mono">drift.detected</td><td className="py-2 px-3">Portfolio drift exceeded threshold</td></tr>
-          <tr><td className="py-2 px-3 font-mono">settlement.completed</td><td className="py-2 px-3">HSP settlement finalized</td></tr>
+          <tr><td className="py-2 px-3 font-mono">settlement.completed</td><td className="py-2 px-3">Settlement route finalized</td></tr>
         </tbody>
       </table>
     </div>
@@ -1816,10 +1828,43 @@ const ChangelogTabContent = () => (
   <>
     <h2 className="font-inter font-bold text-[22px] text-foreground mb-6">Changelog</h2>
     {[
-      { version: 'v0.4.0', date: 'March 2026', changes: ['Added HSP Protocol settlement integration', 'Improved rebalancing algorithm efficiency by 40%', 'New Python SDK beta release'] },
-      { version: 'v0.3.0', date: 'February 2026', changes: ['NexaID KYC integration', 'Webhook support for real-time events', 'Dashboard portfolio analytics'] },
-      { version: 'v0.2.0', date: 'January 2026', changes: ['Multi-vault support', 'Chainlink price feed integration', 'TypeScript SDK v1.0'] },
-      { version: 'v0.1.0', date: 'December 2025', changes: ['Initial testnet launch', 'Basic vault creation and management', 'Monitor and Decision agents'] },
+      {
+        version: 'v0.9.0',
+        date: 'April 2026',
+        changes: [
+          'Production default rails switched to Apex Identity Registry + Apex Settlement Router',
+          'Per-user/per-vault settings persistence with runtime config propagation to live pipeline',
+          'OpenAI decision rate limits added (min interval + hourly cap) with deterministic fallback source logging',
+          'Dashboard cards/logs/allocations wired to live Supabase and on-chain data',
+          'USDC faucet flow added to landing and quick-start docs for deterministic judge onboarding',
+        ],
+      },
+      {
+        version: 'v0.8.0',
+        date: 'April 2026',
+        changes: [
+          'Wallet + email auth identity linking with Supabase-backed profiles',
+          'Per-vault Telegram routing and notification channel management',
+          'RPC health probing and failover hardening for HashKey testnet connectivity',
+        ],
+      },
+      {
+        version: 'v0.7.0',
+        date: 'March 2026',
+        changes: [
+          'Oracle-weighted drift monitoring activated with staleness guards',
+          'Hybrid decision mode introduced (OpenAI primary, deterministic fallback)',
+          'Realtime smoke checks expanded for contracts, RPC, Supabase, Telegram, and pipeline',
+        ],
+      },
+      {
+        version: 'v0.6.0',
+        date: 'March 2026',
+        changes: [
+          'Core testnet contracts deployed and integrated: vault, decision log, agent registry, identity, settlement',
+          'Fixed-supply mock RWAs + 24h faucet contracts added for repeatable demos',
+        ],
+      },
     ].map(release => (
       <div key={release.version} className="mb-8 pb-8 border-b border-border/20 last:border-0">
         <div className="flex items-center gap-3 mb-3">

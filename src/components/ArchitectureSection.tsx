@@ -69,8 +69,8 @@ const layers = [
     ),
     label: 'Layer 4',
     title: 'Settlement Agent',
-    description: 'Routes yield payments through HSP for compliant cross-border settlement.',
-    tech: 'HSP + NexaID',
+    description: 'Routes withdrawals through Apex Settlement Router with Apex Identity Registry attestations.',
+    tech: 'Apex Rails',
   },
 ];
 
@@ -88,8 +88,8 @@ const integrations = [
   },
   {
     name: 'HSP',
-    role: 'Payment Settlement',
-    desc: 'Compliant cross-border yield distribution via HashKey Settlement Protocol',
+    role: 'Future Adapter',
+    desc: 'Optional external adapter path; current production flow uses Apex Settlement Router',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
         <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" />
@@ -99,8 +99,8 @@ const integrations = [
   },
   {
     name: 'NexaID',
-    role: 'Identity & KYC',
-    desc: 'On-chain identity verification for institutional investor accreditation',
+    role: 'Future Adapter',
+    desc: 'Optional external adapter path; current production flow uses Apex Identity Registry',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
         <path d="M12 2L3 7v5c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" stroke="currentColor" strokeWidth="1.5" strokeLinejoin="round" />
@@ -111,7 +111,7 @@ const integrations = [
   {
     name: 'OpenAI',
     role: 'AI Reasoning',
-    desc: 'Portfolio analysis, risk assessment & autonomous rebalancing decisions',
+    desc: 'Portfolio analysis with hard rate limits and deterministic fallback',
     icon: (
       <svg viewBox="0 0 24 24" fill="none" className="w-6 h-6">
         <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" stroke="currentColor" strokeWidth="1.5" />

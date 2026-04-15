@@ -12,6 +12,7 @@ import Footer from '@/components/Footer';
 import ScrollToTop from '@/components/ScrollToTop';
 
 const Index = () => {
+  const usdcFaucetUrl = (import.meta.env.VITE_PUBLIC_USDC_FAUCET_URL as string | undefined)?.trim() || 'https://faucet.circle.com/';
   return (
     <div className="relative bg-background">
       {/* ── HERO ── */}
@@ -46,16 +47,30 @@ const Index = () => {
             </h1>
 
             <p className="font-inter text-[14px] text-foreground/70 max-w-[512px] leading-relaxed mb-10">
-              AI agents that monitor Chainlink price feeds, reason about risk, rebalance on-chain positions, and settle payments through HSP — with no human in the loop after setup.
+              AI agents that monitor oracle price feeds, reason about risk with OpenAI + deterministic fallback, rebalance on-chain positions, and settle through Apex Settlement Router — with no human in the loop after setup.
+            </p>
+            <p className="font-inter text-[12px] text-foreground/60 max-w-[560px] leading-relaxed -mt-6 mb-8">
+              Multi-tenant by design: each user keeps isolated auth session, settings, and alert routing per vault.
             </p>
 
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-3.5 font-inter font-bold text-sm uppercase tracking-wide hover:opacity-90 transition-opacity"
-            >
-              Launch Dashboard
-              <ArrowRight size={18} />
-            </Link>
+            <div className="flex flex-wrap items-center gap-3">
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 rounded-full bg-primary text-primary-foreground px-8 py-3.5 font-inter font-bold text-sm uppercase tracking-wide hover:opacity-90 transition-opacity"
+              >
+                Launch Dashboard
+                <ArrowRight size={18} />
+              </Link>
+              <a
+                href={usdcFaucetUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-card/70 text-foreground px-6 py-3.5 font-inter font-bold text-sm uppercase tracking-wide hover:bg-card transition-colors"
+              >
+                Claim Testnet USDC
+                <ArrowRight size={16} />
+              </a>
+            </div>
           </div>
         </div>
 

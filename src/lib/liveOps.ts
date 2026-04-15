@@ -84,3 +84,61 @@ export async function upsertTelegramChannelForVault(chatId: string, userId?: str
   if (error) throw error;
 }
 
+export interface AppSettingsConfig {
+  settingsValues?: Record<string, string>;
+  telegramPrefs?: Record<string, boolean>;
+  telegramEnabled?: boolean;
+  telegramChatId?: string;
+}
+
+export async function fetchAppSettingsForVaultUser(userId: string) {
+  const vault = requireVaultAddress();
+  if (!vault) return null;
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("id,config,updated_at")
+    .eq("portfolio_id", vault)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data as { id: string; config: AppSettingsConfig; updated_at: string } | null;
+}
+
+export async function upsertAppSettingsForVaultUser(userId: string, config: AppSettingsConfig) {
+  const vault = requireVaultAddress();
+  if (!vault) throw new Error("VITE_PUBLIC_VAULT_ADDRESS missing");
+  const payload = {
+    portfolio_id: vault,
+    user_id: userId,
+    config,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase
+    .from("app_settings")
+    .upsert(payload, { onConflict: "portfolio_id,user_id" });
+  if (error) throw error;
+}
+
+export interface RuntimeConfig {
+  monitor_interval_sec?: number;
+  monitor_alert_min_interval_sec?: number;
+  min_decision_confidence?: number;
+  min_seconds_between_executions?: number;
+  max_rebalance_pct_of_balance?: number;
+}
+
+export async function upsertRuntimeConfigForVault(runtimeConfig: RuntimeConfig, updatedBy?: string) {
+  const vault = requireVaultAddress();
+  if (!vault) throw new Error("VITE_PUBLIC_VAULT_ADDRESS missing");
+  const payload = {
+    portfolio_id: vault,
+    config: runtimeConfig,
+    updated_by: updatedBy ?? null,
+    updated_at: new Date().toISOString(),
+  };
+  const { error } = await supabase
+    .from("portfolio_runtime_config")
+    .upsert(payload, { onConflict: "portfolio_id" });
+  if (error) throw error;
+}
+

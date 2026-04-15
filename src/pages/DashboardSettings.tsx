@@ -11,7 +11,13 @@ import { Label } from '@/components/ui/label';
 import { useTheme } from '@/hooks/useTheme';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
-import { fetchTelegramChannelForVault, upsertTelegramChannelForVault } from '@/lib/liveOps';
+import {
+  fetchTelegramChannelForVault,
+  upsertTelegramChannelForVault,
+  fetchAppSettingsForVaultUser,
+  upsertAppSettingsForVaultUser,
+  upsertRuntimeConfigForVault,
+} from '@/lib/liveOps';
 
 interface Setting {
   label: string;
@@ -65,8 +71,8 @@ const initialGroups: SettingGroup[] = [
     settings: [
       { label: 'Chainlink Feeds', value: 'Connected', desc: '12 price feeds active on HashKey Chain', type: 'toggle' },
       { label: 'OpenAI API', value: 'Connected', desc: 'GPT-4o for Decision Agent reasoning', type: 'toggle' },
-      { label: 'HSP Settlement', value: 'Connected', desc: 'Cross-border yield distribution', type: 'toggle' },
-      { label: 'NexaID KYC', value: 'Connected', desc: 'Institutional identity verification', type: 'toggle' },
+      { label: 'Apex Settlement Router', value: 'Connected', desc: 'Built-in settlement rail for withdrawals/disbursements', type: 'toggle' },
+      { label: 'Apex Identity Registry', value: 'Connected', desc: 'Built-in identity attestations and eligibility checks', type: 'toggle' },
     ],
   },
 ];
@@ -81,7 +87,7 @@ const defaultTelegramPrefs: TelegramPref[] = [
   { label: 'Price Drift Detected', desc: 'Monitor Agent detects allocation drift beyond threshold', enabled: true },
   { label: 'Rebalance Executed', desc: 'Decision Agent approves and executes a portfolio rebalance', enabled: true },
   { label: 'Transaction Confirmed', desc: 'Execution Agent confirms on-chain TX settlement', enabled: true },
-  { label: 'Yield Disbursement', desc: 'Settlement Agent completes yield distribution via HSP', enabled: false },
+  { label: 'Yield Disbursement', desc: 'Settlement Agent completes yield distribution via Apex Settlement Router', enabled: false },
   { label: 'Risk Alert', desc: 'Any risk parameter breach (loss limit, exposure cap)', enabled: true },
   { label: 'Agent Status Change', desc: 'An agent goes offline or encounters an error', enabled: false },
 ];
@@ -98,6 +104,15 @@ const DashboardSettings = () => {
   const [telegramChatId, setTelegramChatId] = useState('');
   const [telegramSaving, setTelegramSaving] = useState(false);
   const [telegramMsg, setTelegramMsg] = useState('');
+  const [persistBusy, setPersistBusy] = useState(false);
+  const [persistMsg, setPersistMsg] = useState('');
+  const [loadedConfig, setLoadedConfig] = useState(false);
+  const settingsState = useQuery({
+    queryKey: ['app-settings', user?.id],
+    queryFn: () => fetchAppSettingsForVaultUser(user!.id),
+    enabled: Boolean(user?.id),
+    refetchInterval: 20000,
+  });
   const { data: telegramChannel } = useQuery({
     queryKey: ['telegram-channel'],
     queryFn: fetchTelegramChannelForVault,
@@ -112,8 +127,77 @@ const DashboardSettings = () => {
     }
   }, [telegramChannel]);
 
+  useEffect(() => {
+    if (!settingsState.data || loadedConfig) return;
+    const cfg = settingsState.data.config || {};
+    const valueMap = cfg.settingsValues || {};
+    const tgPrefs = cfg.telegramPrefs || {};
+    setGroups((prev) =>
+      prev.map((g) => ({
+        ...g,
+        settings: g.settings.map((s) => ({
+          ...s,
+          value: valueMap[s.label] ?? s.value,
+        })),
+      }))
+    );
+    setTelegramPrefs((prev) =>
+      prev.map((p) => ({
+        ...p,
+        enabled: tgPrefs[p.label] ?? p.enabled,
+      }))
+    );
+    if (typeof cfg.telegramEnabled === 'boolean') setTelegramEnabled(cfg.telegramEnabled);
+    if (cfg.telegramChatId) setTelegramChatId(cfg.telegramChatId);
+    setLoadedConfig(true);
+  }, [loadedConfig, settingsState.data]);
+
+  const toRuntimeConfig = (settingValues: Record<string, string>) => {
+    const numberFrom = (value?: string) => Number((value || '').replace(/[^\d.]/g, ''));
+    return {
+      monitor_interval_sec: numberFrom(settingValues['Monitor Interval']) || undefined,
+      min_decision_confidence: numberFrom(settingValues['Confidence Floor']) || undefined,
+      max_rebalance_pct_of_balance: numberFrom(settingValues['Max Single Asset']) || undefined,
+      min_seconds_between_executions:
+        ((numberFrom(settingValues['Rebalance Cooldown']) || 0) * 60) || undefined,
+      monitor_alert_min_interval_sec: undefined,
+    };
+  };
+
+  const persistAllSettings = async (
+    nextGroups: SettingGroup[],
+    nextTelegramPrefs: TelegramPref[],
+    nextTelegramEnabled: boolean,
+    nextTelegramChatId: string
+  ) => {
+    if (!user?.id) return;
+    const settingsValues = Object.fromEntries(
+      nextGroups.flatMap((g) => g.settings.map((s) => [s.label, s.value]))
+    );
+    const telegramPrefsMap = Object.fromEntries(nextTelegramPrefs.map((p) => [p.label, p.enabled]));
+    setPersistBusy(true);
+    setPersistMsg('');
+    try {
+      await upsertAppSettingsForVaultUser(user.id, {
+        settingsValues,
+        telegramPrefs: telegramPrefsMap,
+        telegramEnabled: nextTelegramEnabled,
+        telegramChatId: nextTelegramChatId,
+      });
+      await upsertRuntimeConfigForVault(toRuntimeConfig(settingsValues), user.id);
+      setPersistMsg('Settings synced');
+      setTimeout(() => setPersistMsg(''), 1800);
+    } finally {
+      setPersistBusy(false);
+    }
+  };
+
   const toggleTelegramPref = (index: number) => {
-    setTelegramPrefs(prev => prev.map((p, i) => i === index ? { ...p, enabled: !p.enabled } : p));
+    setTelegramPrefs((prev) => {
+      const next = prev.map((p, i) => (i === index ? { ...p, enabled: !p.enabled } : p));
+      void persistAllSettings(groups, next, telegramEnabled, telegramChatId);
+      return next;
+    });
   };
 
   const saveTelegramChannel = async () => {
@@ -125,6 +209,7 @@ const DashboardSettings = () => {
     setTelegramSaving(true);
     try {
       await upsertTelegramChannelForVault(telegramChatId.trim(), user?.id);
+      await persistAllSettings(groups, telegramPrefs, telegramEnabled, telegramChatId.trim());
       setTelegramMsg('Telegram channel saved');
     } catch (e: any) {
       setTelegramMsg(e?.message || 'Failed to save Telegram channel');
@@ -151,6 +236,7 @@ const DashboardSettings = () => {
     setEditModal(null);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
+    void persistAllSettings(updated, telegramPrefs, telegramEnabled, telegramChatId);
   };
 
   const toggleSetting = (gi: number, si: number) => {
@@ -163,6 +249,7 @@ const DashboardSettings = () => {
       ),
     };
     setGroups(updated);
+    void persistAllSettings(updated, telegramPrefs, telegramEnabled, telegramChatId);
   };
 
   const currentSetting = editModal ? groups[editModal.groupIdx].settings[editModal.settingIdx] : null;
@@ -274,7 +361,13 @@ const DashboardSettings = () => {
                     <h3 className="font-inter font-bold text-foreground text-[15px]">Telegram Alerts</h3>
                     <p className="font-inter text-[11px] text-muted-foreground">Receive real-time agent notifications via Telegram Bot</p>
                   </div>
-                  <Switch checked={telegramEnabled} onCheckedChange={setTelegramEnabled} />
+                  <Switch
+                    checked={telegramEnabled}
+                    onCheckedChange={(v) => {
+                      setTelegramEnabled(v);
+                      void persistAllSettings(groups, telegramPrefs, v, telegramChatId);
+                    }}
+                  />
                 </div>
                 {telegramEnabled && (
                   <>
@@ -292,6 +385,8 @@ const DashboardSettings = () => {
                           {telegramSaving ? 'Saving...' : 'Save Telegram Route'}
                         </Button>
                         {telegramMsg && <p className="font-inter text-[11px] text-primary">{telegramMsg}</p>}
+                        {persistMsg && <p className="font-inter text-[11px] text-primary">{persistMsg}</p>}
+                        {persistBusy && <p className="font-inter text-[11px] text-muted-foreground">Syncing...</p>}
                       </div>
                     </div>
                     <div className="divide-y divide-border/50">

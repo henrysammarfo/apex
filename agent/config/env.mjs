@@ -30,6 +30,8 @@ export const AgentEnvSchema = z.object({
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL: z.string().default("gpt-4o-mini"),
   DECISION_MODE: z.enum(["ai", "deterministic", "hybrid"]).default("hybrid"),
+  OPENAI_MIN_INTERVAL_SEC: z.coerce.number().int().min(0).max(3600).default(30),
+  OPENAI_MAX_CALLS_PER_HOUR: z.coerce.number().int().min(1).max(10000).default(180),
 
   SUPABASE_URL: z
     .string()

@@ -8,7 +8,7 @@ APEX is a live autonomous portfolio execution MVP on HashKey testnet:
 - per-vault Telegram routing for multi-tenant notifications,
 - Supabase-backed audit trail and realtime operational logs.
 
-This repo is hackathon-grade and startup-oriented: open, permissionless core first; optional external adapters later.
+APEX is built as an execution-first, production-oriented autonomous finance stack: open core rails, transparent on-chain auditability, and adapter-ready integrations.
 
 ## What Is Live Now
 
@@ -90,34 +90,75 @@ Expected output includes:
 - `supabaseWriteOk: true`
 - `telegramEnabled: true`
 
-## Quick Start (Ops)
+## Prerequisites
+
+```bash
+node -v
+```
+
+- Node.js `>=20`
+- npm `>=10`
+- A Supabase project (for logs/settings/auth tables)
+- Optional: OpenAI API key (without it, run deterministic mode)
+
+## Environment Setup (Required)
+
+1. Copy env templates:
+
+```bash
+copy .env.example .env
+copy .env.example .env.local
+```
+
+2. Fill only required keys:
+
+- In `.env`: `HASHKEY_TESTNET_RPC`, `VAULT_CONTRACT`, `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`
+- Optional in `.env`: `OPENAI_API_KEY` (if omitted, use `DECISION_MODE=deterministic`)
+- In `.env.local`: `VITE_PUBLIC_VAULT_ADDRESS`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`
+
+3. Run database schema once in Supabase SQL editor:
+
+- `agent/supabase.sql`
+
+## Quick Start (Judge Path: ~15 minutes)
 
 ```bash
 npm install
 npm run contracts:compile
 npm run contracts:test
+npm run smoke:all
+npm run dev
 ```
 
-Run pipeline:
+If you want autonomous backend loop running locally in parallel:
 
 ```bash
 npm run agent:pipeline
 ```
 
-Run frontend:
+Open app:
 
 ```bash
-npm run dev
+http://localhost:5173
 ```
 
-## Environment
+Expected successful smoke-test signals:
 
-Use `.env.example` to create:
+- `ok: true`
+- `mode: "oracle_value_weighted"` (or deterministic mode if configured)
+- `supabaseWriteOk: true`
+- `telegramEnabled: true` (if telegram envs set)
 
-- `.env` for backend/agents (private values)
-- `.env.local` for Vite public values only (`VITE_*`)
+## Troubleshooting (Judge Fast Fixes)
 
-Do not commit secrets.
+- `OPENAI_API_KEY` missing or rate-limited:
+  - set `DECISION_MODE=deterministic` in `.env` and re-run smoke test
+- RPC instability:
+  - set `HASHKEY_TESTNET_RPCS` with multiple endpoints (comma-separated)
+- Supabase write errors:
+  - verify schema from `agent/supabase.sql` has been executed
+- Frontend auth redirect mismatch:
+  - ensure Supabase Auth URLs include local `http://localhost:5173/*` routes
 
 ## Bible Alignment Check (Hackathon Scope)
 
@@ -129,13 +170,13 @@ Do not commit secrets.
 - ✅ Multi-tenant notification routing
 - ⚠️ HSP/NexaID external credentials can be integrated when available (adapters already scaffolded)
 
-## Known Limits (Transparent)
+## Current Limits
 
 - Mock RWA instruments are demo assets, not regulated custody-backed securities.
 - Oracle mapping currently uses live reference proxies for agent behavior validation.
 - Mainnet-grade issuer custody proof feeds are future integration work.
 
-## Security Notes
+## Security
 
 - `.env` and `*.local` are gitignored.
 - Rotate any exposed keys before production deployment.
@@ -144,6 +185,10 @@ Do not commit secrets.
 ## Privacy
 
 See `PRIVACY.md`.
+
+## Changelog
+
+See `CHANGELOG.md`.
 
 ## Brand Assets
 

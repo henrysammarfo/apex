@@ -162,7 +162,7 @@ const Portfolio = () => {
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }} className="liquid-glass rounded-xl p-5">
                   <p className="font-inter text-[11px] text-muted-foreground uppercase tracking-widest mb-1">Available Yield</p>
                   <p className="font-inter font-extrabold text-foreground text-[24px]">${availableYield.toLocaleString()}</p>
-                  <p className="font-inter text-[11px] text-muted-foreground mt-1">Pending HSP settlement</p>
+                  <p className="font-inter text-[11px] text-muted-foreground mt-1">Pending Apex settlement routing</p>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.16 }}>
                   <button onClick={openDeposit} className="liquid-glass rounded-xl p-5 w-full h-full text-left hover:bg-foreground/[0.04] transition-colors group cursor-pointer">
@@ -362,8 +362,8 @@ const Portfolio = () => {
                         <span className="text-foreground">Auto: tUSTB 35%, rREF 25%, cBOND 20%, gGLD 12%, USDC 8%</span>
                       </div>
                       <div className="flex justify-between font-inter text-[11px]">
-                        <span className="text-muted-foreground">NexaID</span>
-                        <span className="text-primary">Verified ✓</span>
+                        <span className="text-muted-foreground">Identity</span>
+                        <span className="text-primary">Apex Verified ✓</span>
                       </div>
                       <div className="flex justify-between font-inter text-[11px]">
                         <span className="text-muted-foreground">Vault Contract</span>
@@ -386,7 +386,7 @@ const Portfolio = () => {
                     </div>
                     <div className="space-y-1 text-left bg-secondary/30 rounded-lg p-3">
                       <p className="font-inter text-[11px] text-primary flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Wallet signature received</p>
-                      <p className="font-inter text-[11px] text-primary flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> NexaID verification passed</p>
+                      <p className="font-inter text-[11px] text-primary flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Identity verification passed</p>
                       <p className="font-inter text-[11px] text-muted-foreground flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Awaiting block confirmation...</p>
                     </div>
                   </div>
@@ -495,12 +495,12 @@ const Portfolio = () => {
                         <button onClick={() => setWithdrawDest('hsp')} className={`font-inter text-[12px] px-3 py-2.5 rounded-lg border transition-colors ${
                           withdrawDest === 'hsp' ? 'border-primary bg-primary/10 text-primary font-medium' : 'border-border bg-secondary/30 text-muted-foreground hover:text-foreground'
                         }`}>
-                          <ArrowRight className="w-3.5 h-3.5 inline mr-1.5" />HSP Settlement
+                          <ArrowRight className="w-3.5 h-3.5 inline mr-1.5" />Apex Settlement
                         </button>
                       </div>
                       {withdrawDest === 'hsp' && (
                         <p className="font-inter text-[10px] text-muted-foreground bg-secondary/30 rounded-lg p-2">
-                          HSP routes funds through HashKey Settlement Protocol for cross-border bank settlement. Currency conversion and compliance handled automatically.
+                          Apex Settlement Router handles settlement routing. External HSP can be added later as an adapter.
                         </p>
                       )}
                     </div>
@@ -516,7 +516,7 @@ const Portfolio = () => {
                     <div className="text-center py-2">
                       <p className="font-inter text-[13px] text-muted-foreground">You are withdrawing</p>
                       <p className="font-inter font-extrabold text-foreground text-[32px] mt-1">${Number(withdrawAmount).toLocaleString()}</p>
-                      <p className="font-inter text-[13px] text-accent">APEX Vault → {withdrawDest === 'hsp' ? 'HSP Settlement' : 'Your Wallet'}</p>
+                      <p className="font-inter text-[13px] text-accent">APEX Vault → {withdrawDest === 'hsp' ? 'Apex Settlement' : 'Your Wallet'}</p>
                     </div>
                     <div className="bg-secondary/30 rounded-lg p-3 space-y-1.5">
                       <div className="flex justify-between font-inter text-[11px]">
@@ -525,17 +525,17 @@ const Portfolio = () => {
                       </div>
                       <div className="flex justify-between font-inter text-[11px]">
                         <span className="text-muted-foreground">Destination</span>
-                        <span className="text-foreground">{withdrawDest === 'hsp' ? 'HSP → Bank Account' : 'On-chain Wallet'}</span>
+                        <span className="text-foreground">{withdrawDest === 'hsp' ? 'Apex Router → Bank Account' : 'On-chain Wallet'}</span>
                       </div>
                       {withdrawDest === 'hsp' && (
                         <div className="flex justify-between font-inter text-[11px]">
                           <span className="text-muted-foreground">Settlement</span>
-                          <span className="text-foreground">T+1 via HSP</span>
+                          <span className="text-foreground">Routed via Apex Settlement Router</span>
                         </div>
                       )}
                       <div className="flex justify-between font-inter text-[11px]">
                         <span className="text-muted-foreground">KYC Status</span>
-                        <span className="text-primary">NexaID Verified ✓</span>
+                        <span className="text-primary">Apex Identity Verified ✓</span>
                       </div>
                     </div>
                     <div className="flex gap-3">
@@ -551,14 +551,14 @@ const Portfolio = () => {
                     <div>
                       <p className="font-inter font-bold text-foreground text-[15px]">Processing Withdrawal</p>
                       <p className="font-inter text-[12px] text-muted-foreground mt-1">
-                        {withdrawDest === 'hsp' ? 'Initiating HSP settlement...' : 'Submitting TX to HashKey Chain...'}
+                        {withdrawDest === 'hsp' ? 'Initiating Apex settlement routing...' : 'Submitting TX to HashKey Chain...'}
                       </p>
                     </div>
                     <div className="space-y-1 text-left bg-secondary/30 rounded-lg p-3">
                       <p className="font-inter text-[11px] text-primary flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Wallet signature received</p>
-                      <p className="font-inter text-[11px] text-primary flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> NexaID compliance check passed</p>
+                      <p className="font-inter text-[11px] text-primary flex items-center gap-2"><CheckCircle2 className="w-3 h-3" /> Apex identity check passed</p>
                       {withdrawDest === 'hsp' ? (
-                        <p className="font-inter text-[11px] text-muted-foreground flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> HSP payment request submitted...</p>
+                        <p className="font-inter text-[11px] text-muted-foreground flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Settlement route submitted...</p>
                       ) : (
                         <p className="font-inter text-[11px] text-muted-foreground flex items-center gap-2"><Loader2 className="w-3 h-3 animate-spin" /> Awaiting block confirmation...</p>
                       )}
@@ -574,7 +574,7 @@ const Portfolio = () => {
                     <div>
                       <p className="font-inter font-bold text-foreground text-[17px]">Withdrawal Successful</p>
                       <p className="font-inter text-[13px] text-muted-foreground mt-1">
-                        ${Number(withdrawAmount).toLocaleString()} {withdrawDest === 'hsp' ? 'sent via HSP' : 'sent to wallet'}
+                        ${Number(withdrawAmount).toLocaleString()} {withdrawDest === 'hsp' ? 'sent via Apex Router' : 'sent to wallet'}
                       </p>
                     </div>
                     <div className="bg-secondary/30 rounded-lg p-3 space-y-1.5">
@@ -584,8 +584,8 @@ const Portfolio = () => {
                       </div>
                       {withdrawDest === 'hsp' && (
                         <div className="flex justify-between font-inter text-[11px]">
-                          <span className="text-muted-foreground">HSP Reference</span>
-                          <span className="text-foreground font-mono">HSP-2026-04-0892</span>
+                          <span className="text-muted-foreground">Settlement Reference</span>
+                          <span className="text-foreground font-mono">APEX-SETTLE-2026-04-0892</span>
                         </div>
                       )}
                       <div className="flex justify-between font-inter text-[11px]">

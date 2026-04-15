@@ -18,6 +18,42 @@ create table if not exists portfolios (
 
 create index if not exists idx_portfolios_owner on portfolios (owner_wallet);
 
+-- ── Wallet identity bridge (wallet-only session metadata) ──────────────────
+create table if not exists wallet_profiles (
+  id uuid primary key default gen_random_uuid(),
+  wallet_address text not null unique,
+  display_name text,
+  linked_auth_user_id text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  last_seen_at timestamptz
+);
+
+create index if not exists idx_wallet_profiles_wallet on wallet_profiles (wallet_address);
+
+-- ── Per-user per-vault dashboard settings (live controls) ──────────────────
+create table if not exists app_settings (
+  id uuid primary key default gen_random_uuid(),
+  portfolio_id text not null,
+  user_id text not null,
+  config jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create unique index if not exists ux_app_settings_portfolio_user
+  on app_settings (portfolio_id, user_id);
+
+-- ── Effective runtime config per vault (consumed by agents) ────────────────
+create table if not exists portfolio_runtime_config (
+  id uuid primary key default gen_random_uuid(),
+  portfolio_id text not null unique,
+  config jsonb not null default '{}'::jsonb,
+  updated_by text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
 -- ── Decisions (OpenAI + on-chain audit) ──────────────────────────────────────
 create table if not exists decisions (
   id uuid primary key default gen_random_uuid(),

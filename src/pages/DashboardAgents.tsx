@@ -31,8 +31,8 @@ const agentDetails: Record<AgentName, { description: string; tasks: string[]; up
     metrics: [{ label: 'TXs (24h)', value: '7' }, { label: 'Avg Gas', value: '0.08 Gwei' }, { label: 'Avg Confirm', value: '1.8s' }, { label: 'Success Rate', value: '100%' }],
   },
   Settlement: {
-    description: 'Manages yield distribution to institutional wallets via the HashKey Settlement Protocol (HSP). Ensures KYC compliance and cross-border settlement.',
-    tasks: ['Yield calculation & aggregation', 'HSP settlement execution', 'KYC verification checks', 'Recipient wallet validation'],
+    description: 'Manages yield distribution via Apex Settlement Router with identity/eligibility checks from Apex Identity Registry.',
+    tasks: ['Yield calculation & aggregation', 'Settlement route execution', 'Identity verification checks', 'Recipient route validation'],
     uptime: '99.98%', lastAction: '12 min ago',
     metrics: [{ label: 'Settled (24h)', value: '$3,470' }, { label: 'Recipients', value: '4' }, { label: 'Settlements', value: '2' }, { label: 'KYC Status', value: 'Verified' }],
   },
@@ -42,12 +42,12 @@ const fallbackLogs = [
   { time: '2 min ago', agent: 'Monitor' as AgentName, event: 'Price drift detected on cBOND (+1.2% above threshold)', type: 'warning', detail: 'cBOND price: $102.34 | Target: $101.10 | Threshold: ±1.0%', txHash: '' },
   { time: '5 min ago', agent: 'Decision' as AgentName, event: 'Rebalance approved: sell 0.8% cBOND → buy tUSTB', type: 'success', detail: 'Confidence: 92% | Risk delta: -0.04 | Expected slippage: 0.02%', txHash: '' },
   { time: '5 min ago', agent: 'Execution' as AgentName, event: 'TX submitted: 0x7a3f...c291 (confirmed in 1.8s)', type: 'success', detail: 'Gas: 0.08 Gwei | Block: #4,291,037 | Chain: HSK L2', txHash: '0x7a3f...c291' },
-  { time: '12 min ago', agent: 'Settlement' as AgentName, event: 'Yield disbursement: $1,847.32 via HSP to 4 recipients', type: 'success', detail: 'Recipients: 4 institutional wallets | Currency: USDC | KYC: verified', txHash: '0x4e7b...3a12' },
+  { time: '12 min ago', agent: 'Settlement' as AgentName, event: 'Yield disbursement: $1,847.32 via Apex Settlement Router to 4 recipients', type: 'success', detail: 'Recipients: 4 institutional wallets | Currency: USDC | Identity: verified', txHash: '0x4e7b...3a12' },
   { time: '1 hr ago', agent: 'Monitor' as AgentName, event: 'All assets within allocation thresholds', type: 'info', detail: 'Max drift: 0.3% (gGLD) | Min drift: 0.01% (USDC)', txHash: '' },
   { time: '2 hr ago', agent: 'Execution' as AgentName, event: 'TX submitted: 0x2b1e...a8f4 (confirmed in 2.1s)', type: 'success', detail: 'Gas: 0.09 Gwei | Block: #4,290,998 | Chain: HSK L2', txHash: '0x2b1e...a8f4' },
   { time: '3 hr ago', agent: 'Decision' as AgentName, event: 'No rebalance needed — portfolio within tolerance', type: 'info', detail: 'All 5 assets within ±0.5% of target allocation', txHash: '' },
   { time: '4 hr ago', agent: 'Monitor' as AgentName, event: 'Chainlink feed refresh completed for 12 assets', type: 'info', detail: 'Latency: 340ms avg | All feeds healthy', txHash: '' },
-  { time: '6 hr ago', agent: 'Settlement' as AgentName, event: 'Yield disbursement: $1,623.18 via HSP to 4 recipients', type: 'success', detail: 'Recipients: 4 institutional wallets | Currency: USDC', txHash: '0x1f8c...d923' },
+  { time: '6 hr ago', agent: 'Settlement' as AgentName, event: 'Yield disbursement: $1,623.18 via Apex Settlement Router to 4 recipients', type: 'success', detail: 'Recipients: 4 institutional wallets | Currency: USDC', txHash: '0x1f8c...d923' },
   { time: '8 hr ago', agent: 'Execution' as AgentName, event: 'TX submitted: 0x9c2d...f871 (confirmed in 1.5s)', type: 'success', detail: 'Gas: 0.07 Gwei | Block: #4,290,812 | Chain: HSK L2', txHash: '0x9c2d...f871' },
 ];
 

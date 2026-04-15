@@ -23,7 +23,7 @@ const notifications = [
   { id: 1, agent: 'Monitor', event: 'Price drift detected on cBOND (+1.2%)', time: '2 min ago', type: 'warning', read: false },
   { id: 2, agent: 'Decision', event: 'Rebalance approved: sell 0.8% cBOND → buy tUSTB', time: '5 min ago', type: 'success', read: false },
   { id: 3, agent: 'Execution', event: 'TX confirmed: 0x7a3f...c291', time: '5 min ago', type: 'success', read: false },
-  { id: 4, agent: 'Settlement', event: 'Yield disbursement: $1,847 via HSP', time: '12 min ago', type: 'success', read: true },
+  { id: 4, agent: 'Settlement', event: 'Yield disbursement: $1,847 via Apex Settlement Router', time: '12 min ago', type: 'success', read: true },
   { id: 5, agent: 'Monitor', event: 'All assets within thresholds', time: '1 hr ago', type: 'info', read: true },
 ];
 

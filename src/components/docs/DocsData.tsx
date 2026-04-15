@@ -34,8 +34,8 @@ export const SIDEBAR_SECTIONS = [
     links: [
       { label: 'HashKey Chain', slug: 'hashkey-chain' },
       { label: 'Chainlink Feeds', slug: 'chainlink-feeds' },
-      { label: 'NexaID KYC', slug: 'nexaid-kyc' },
-      { label: 'HSP Protocol', slug: 'hsp-protocol' },
+      { label: 'Apex Identity Registry', slug: 'nexaid-kyc' },
+      { label: 'Apex Settlement Router', slug: 'hsp-protocol' },
     ],
   },
   {
@@ -97,7 +97,7 @@ export const AGENT_CARDS = [
       </svg>
     ),
     title: 'Settlement Agent',
-    desc: 'Finalizes payments through HSP Protocol with compliance checks via NexaID.',
+    desc: 'Finalizes payments through Apex Settlement Router with checks via Apex Identity Registry.',
   },
 ];
 

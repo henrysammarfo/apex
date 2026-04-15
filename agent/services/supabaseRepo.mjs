@@ -120,5 +120,18 @@ export function createSupabaseRepo(url, serviceRoleKey) {
       if (error) logger.error("supabase.notification_channels upsert failed", { error: error.message });
       return !error;
     },
+
+    async getRuntimeConfig(portfolioId) {
+      const { data, error } = await db
+        .from("portfolio_runtime_config")
+        .select("config")
+        .eq("portfolio_id", portfolioId)
+        .maybeSingle();
+      if (error) {
+        logger.warn("supabase.portfolio_runtime_config read failed", { error: error.message });
+        return null;
+      }
+      return data?.config ?? null;
+    },
   };
 }

@@ -19,6 +19,8 @@ import { createHealthyProvider, rpcCandidates } from "./lib/rpcProvider.mjs";
 
 let lastMonitorAlertSig = "";
 let lastMonitorAlertAt = 0;
+let lastOpenAiCallAt = 0;
+const openAiCallTimestamps = [];
 
 async function notifyPortfolio(repo, tg, portfolioId, text) {
   if (!tg.enabled) return;
@@ -64,6 +66,47 @@ function shouldSendMonitorAlert(env, snap) {
 function secondsSince(iso) {
   if (!iso) return Infinity;
   return (Date.now() - new Date(iso).getTime()) / 1000;
+}
+
+function pruneOpenAiWindow(nowMs) {
+  const oneHourAgo = nowMs - 60 * 60 * 1000;
+  while (openAiCallTimestamps.length && openAiCallTimestamps[0] < oneHourAgo) {
+    openAiCallTimestamps.shift();
+  }
+}
+
+function canCallOpenAi(env) {
+  const now = Date.now();
+  pruneOpenAiWindow(now);
+  const minIntervalMs = env.OPENAI_MIN_INTERVAL_SEC * 1000;
+  if (now - lastOpenAiCallAt < minIntervalMs) {
+    return { ok: false, reason: "min_interval" };
+  }
+  if (openAiCallTimestamps.length >= env.OPENAI_MAX_CALLS_PER_HOUR) {
+    return { ok: false, reason: "hourly_cap" };
+  }
+  return { ok: true, reason: "ok" };
+}
+
+function markOpenAiCall() {
+  const now = Date.now();
+  lastOpenAiCallAt = now;
+  openAiCallTimestamps.push(now);
+}
+
+function withRuntimeOverrides(env, runtimeConfig) {
+  if (!runtimeConfig || typeof runtimeConfig !== "object") return env;
+  return {
+    ...env,
+    MONITOR_INTERVAL_SEC: runtimeConfig.monitor_interval_sec ?? env.MONITOR_INTERVAL_SEC,
+    MONITOR_ALERT_MIN_INTERVAL_SEC:
+      runtimeConfig.monitor_alert_min_interval_sec ?? env.MONITOR_ALERT_MIN_INTERVAL_SEC,
+    MIN_DECISION_CONFIDENCE: runtimeConfig.min_decision_confidence ?? env.MIN_DECISION_CONFIDENCE,
+    MIN_SECONDS_BETWEEN_EXECUTIONS:
+      runtimeConfig.min_seconds_between_executions ?? env.MIN_SECONDS_BETWEEN_EXECUTIONS,
+    MAX_REBALANCE_PCT_OF_BALANCE:
+      runtimeConfig.max_rebalance_pct_of_balance ?? env.MAX_REBALANCE_PCT_OF_BALANCE,
+  };
 }
 
 function computeAmountWei(snap, assetAddr, amountPct, maxPct) {
@@ -113,7 +156,6 @@ function computeDeterministicDecision(snap, maxPct) {
 async function maybeAutoExecute(env, snap, tg, repo, provider) {
   if (!env.PIPELINE_AUTO_EXECUTE) return;
   if (!env.PRIVATE_KEY) throw new Error("PIPELINE_AUTO_EXECUTE requires PRIVATE_KEY");
-  if (!env.OPENAI_API_KEY) throw new Error("PIPELINE_AUTO_EXECUTE requires OPENAI_API_KEY");
   if (!env.DECISION_LOG_CONTRACT) throw new Error("PIPELINE_AUTO_EXECUTE requires DECISION_LOG_CONTRACT");
 
   const state = repo ? await repo.getPipelineState() : null;
@@ -124,15 +166,27 @@ async function maybeAutoExecute(env, snap, tg, repo, provider) {
   }
 
   let d;
+  let decisionSource = "deterministic";
   if (env.DECISION_MODE === "deterministic") {
     d = computeDeterministicDecision(snap, env.MAX_REBALANCE_PCT_OF_BALANCE);
   } else {
+    const aiAllowed = canCallOpenAi(env);
+    const aiCapable = Boolean(env.OPENAI_API_KEY);
+    if (!aiCapable && env.DECISION_MODE === "ai") {
+      throw new Error("DECISION_MODE=ai requires OPENAI_API_KEY");
+    }
     try {
+      if (!aiCapable || !aiAllowed.ok) {
+        throw new Error(!aiCapable ? "missing_openai_key" : `openai_rate_limited:${aiAllowed.reason}`);
+      }
       d = await decide(snap);
+      markOpenAiCall();
+      decisionSource = "openai";
     } catch (e) {
       if (env.DECISION_MODE === "hybrid") {
         logger.warn("pipeline.decision_fallback_deterministic", { message: e.message });
         d = computeDeterministicDecision(snap, env.MAX_REBALANCE_PCT_OF_BALANCE);
+        decisionSource = "deterministic_fallback";
       } else {
         logger.error("pipeline.decision_failed", { message: e.message });
         await notifyPortfolio(repo, tg, snap.vault, `<b>APEX Decision error</b>\n<code>${String(e.message).slice(0, 500)}</code>`);
@@ -141,7 +195,7 @@ async function maybeAutoExecute(env, snap, tg, repo, provider) {
     }
   }
   if (d.action === "hold") {
-    logger.info("pipeline.decision_hold", { confidence: d.confidence });
+    logger.info("pipeline.decision_hold", { confidence: d.confidence, source: decisionSource });
     if (repo) {
       await repo.insertDecision({
         portfolioId: snap.vault,
@@ -153,7 +207,7 @@ async function maybeAutoExecute(env, snap, tg, repo, provider) {
         reasoning: d.reasoning,
         reasoningHash: ethers.keccak256(ethers.toUtf8Bytes(d.reasoning)),
         openaiModel: env.OPENAI_MODEL,
-        status: "skipped",
+        status: decisionSource,
       });
     }
     await notifyPortfolio(repo, tg, snap.vault, `<b>APEX Decision</b> hold (conf ${d.confidence})`);
@@ -194,7 +248,7 @@ async function maybeAutoExecute(env, snap, tg, repo, provider) {
       reasoning: d.reasoning,
       reasoningHash: reasoningHashHex,
       openaiModel: env.OPENAI_MODEL,
-      status: "pending",
+      status: decisionSource,
     });
   }
 
@@ -229,7 +283,9 @@ async function maybeAutoExecute(env, snap, tg, repo, provider) {
   logger.info("pipeline.execution_complete", result);
 }
 
-async function tick(env, provider, vault, feedMap, useOracle, repo, tg) {
+async function tick(baseEnv, provider, vault, feedMap, useOracle, repo, tg) {
+  const runtimeConfig = await repo?.getRuntimeConfig(vault);
+  const env = withRuntimeOverrides(baseEnv, runtimeConfig);
   const snap = await buildPortfolioSnapshot(provider, vault, feedMap, useOracle, {
     maxStalenessSec: env.ORACLE_MAX_STALENESS_SEC,
   });
@@ -248,6 +304,7 @@ async function tick(env, provider, vault, feedMap, useOracle, repo, tg) {
     }
     await maybeAutoExecute(env, snap, tg, repo, provider);
   }
+  return env.MONITOR_INTERVAL_SEC;
 }
 
 async function main() {
@@ -271,17 +328,31 @@ async function main() {
     supabase: Boolean(repo),
     telegram: tg.enabled,
     rpcCandidates: rpcCandidates(env.HASHKEY_TESTNET_RPC),
+    decisionMode: env.DECISION_MODE,
+    openAiMinIntervalSec: env.OPENAI_MIN_INTERVAL_SEC,
+    openAiMaxCallsPerHour: env.OPENAI_MAX_CALLS_PER_HOUR,
   });
 
   await tg.send("<b>APEX Pipeline</b> started");
 
-  await tick(env, provider, vault, feedMap, useOracle, repo, tg);
-  const id = setInterval(() => {
-    tick(env, provider, vault, feedMap, useOracle, repo, tg).catch((e) => logger.error("pipeline.tick_error", { message: e.message, stack: e.stack }));
-  }, env.MONITOR_INTERVAL_SEC * 1000);
+  let stopped = false;
+  const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+  const loop = async () => {
+    while (!stopped) {
+      let intervalSec = env.MONITOR_INTERVAL_SEC;
+      try {
+        intervalSec = await tick(env, provider, vault, feedMap, useOracle, repo, tg);
+      } catch (e) {
+        logger.error("pipeline.tick_error", { message: e.message, stack: e.stack });
+      }
+      const waitMs = Math.max(10, Number(intervalSec || env.MONITOR_INTERVAL_SEC)) * 1000;
+      await sleep(waitMs);
+    }
+  };
+  loop().catch((e) => logger.error("pipeline.loop_fatal", { message: e.message, stack: e.stack }));
 
   const shutdown = async () => {
-    clearInterval(id);
+    stopped = true;
     logger.info("pipeline.shutdown");
     await tg.send("<b>APEX Pipeline</b> stopping");
     process.exit(0);

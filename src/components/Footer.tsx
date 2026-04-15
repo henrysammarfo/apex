@@ -15,8 +15,8 @@ const footerLinks = [
     links: [
       { label: 'HashKey Chain', href: '#' },
       { label: 'Chainlink', href: '#' },
-      { label: 'NexaID', href: '#' },
-      { label: 'HSP Protocol', href: '#' },
+      { label: 'Apex Identity Registry', href: '/docs/nexaid-kyc' },
+      { label: 'Apex Settlement Router', href: '/docs/hsp-protocol' },
     ],
   },
   {

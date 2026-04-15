@@ -22,8 +22,8 @@ const steps: TourStep[] = [
     details: [
       'Fully autonomous portfolio management',
       'Built on HashKey Chain (Chain ID 133)',
-      'Institutional-grade compliance via NexaID',
-      'Cross-border settlement through HSP',
+      'Institutional-grade compliance via Apex Identity Registry',
+      'Settlement routing through Apex Settlement Router',
     ],
     accent: 'from-primary/20 to-primary/5',
   },
@@ -36,7 +36,7 @@ const steps: TourStep[] = [
       'Monitor Agent — Watches Chainlink price feeds for allocation drift every 60s',
       'Decision Agent — Uses GPT-4o reasoning to evaluate rebalance trades above 85% confidence',
       'Execution Agent — Submits on-chain transactions with slippage protection on HashKey L2',
-      'Settlement Agent — Handles yield distribution and cross-border payouts via HSP',
+      'Settlement Agent — Handles yield distribution and settlement routing via Apex rails',
     ],
     accent: 'from-primary/20 to-primary/5',
   },
@@ -59,7 +59,7 @@ const steps: TourStep[] = [
     subtitle: 'USDC · HSK · ETH Supported',
     description: 'Deposit assets into your vault from the Portfolio page. Funds are automatically allocated across tokenized RWAs based on your target configuration.',
     details: [
-      'Requires NexaID verification for compliance',
+      'Optional Apex Identity attestation depending on vault policy',
       'Choose USDC, HSK, or ETH as deposit asset',
       'Preview auto-allocation before confirming',
       'Transactions settle on HashKey Chain L2',

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
@@ -6,12 +6,16 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Zap, Eye, EyeOff, Wallet, Mail } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { useAccount, useConnect } from 'wagmi';
+import { hashKeyTestnet } from '@/lib/hashkeyChain';
 
 const Login = () => {
   const { signIn } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as any)?.from?.pathname || '/dashboard';
+  const { isConnected } = useAccount();
+  const { connect, connectors, isPending } = useConnect();
 
   const [authMethod, setAuthMethod] = useState<'email' | 'wallet'>('email');
   const [email, setEmail] = useState('');
@@ -19,6 +23,12 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (authMethod === 'wallet' && isConnected) {
+      navigate(from, { replace: true });
+    }
+  }, [authMethod, from, isConnected, navigate]);
 
   const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,7 +44,22 @@ const Login = () => {
   };
 
   const handleWalletConnect = async () => {
-    setError('Wallet sign-in is not enabled yet. Use email auth for now.');
+    setError('');
+    if (isConnected) {
+      navigate(from, { replace: true });
+      return;
+    }
+    const preferred = connectors.find((c) => c.id === 'injected' || c.type === 'injected') ?? connectors[0];
+    if (!preferred) {
+      setError('No wallet connector is available. Install MetaMask or enable WalletConnect.');
+      return;
+    }
+    try {
+      connect({ connector: preferred, chainId: hashKeyTestnet.id });
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Wallet connection failed.';
+      setError(msg);
+    }
   };
 
   return (
@@ -111,9 +136,9 @@ const Login = () => {
                 Connect your wallet to sign in. Supported wallets: MetaMask, WalletConnect, Coinbase Wallet.
               </p>
               {error && <p className="text-destructive text-sm font-inter text-center">{error}</p>}
-              <Button onClick={handleWalletConnect} className="w-full font-inter font-bold gap-2" disabled={loading}>
+              <Button onClick={handleWalletConnect} className="w-full font-inter font-bold gap-2" disabled={loading || isPending}>
                 <Wallet className="w-4 h-4" />
-                {loading ? 'Connecting...' : 'Connect Wallet'}
+                {isPending ? 'Connecting...' : isConnected ? 'Continue to Dashboard' : 'Connect Wallet'}
               </Button>
               <p className="font-inter text-[11px] text-muted-foreground text-center">
                 You can link your email in your profile after connecting.
