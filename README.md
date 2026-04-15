@@ -60,9 +60,11 @@ Deployment performed from wallet: `0x2F914bcbAD5bf4967BbB11e4372200b7c7594AEB`
 - `MockRWA Silver`: `0x4192696687a540B92b2CAf25442C94843cC6DD03`
 - `MockRWA MMF`: `0x5F411a8879A67ed0be12Fd5257750211cE4fA503`
 - `MockRWA Securities`: `0x42E3F51Ab897410B03655c00049fA2F0fCE9f056`
+- `Mock Testnet USDC`: `0x1d82f5Da580b43b708617A8947Eeab0D38152077`
 - `Faucet Silver`: `0x37216d1535dF725d58eDD037897185a8bA388a99`
 - `Faucet MMF`: `0x83CDf2C2Fa137A7310Ff58914bD9F72e2717faaD`
 - `Faucet Securities`: `0x64C1708e098aaF555320CBd24aFc7E8FaA706859`
+- `Faucet USDC`: `0x355880a1b0848eB0e7064A22F365a68E30AdC7D7`
 
 ## Realtime Oracle Mapping (Current MVP)
 
@@ -133,7 +135,9 @@ npm run dev
 USDC-only deploy (without redeploying other contracts):
 
 ```bash
+$env:DEPLOY_MODE="usdc_only"
 npm run contracts:deploy:usdc:testnet
+Remove-Item Env:DEPLOY_MODE
 ```
 
 If you want autonomous backend loop running locally in parallel:

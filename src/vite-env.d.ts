@@ -9,6 +9,8 @@ interface ImportMetaEnv {
   readonly VITE_SUPABASE_URL?: string;
   readonly VITE_SUPABASE_ANON_KEY?: string;
   readonly VITE_PUBLIC_USDC_FAUCET_URL?: string;
+  readonly VITE_PUBLIC_USDC_TOKEN_ADDRESS?: string;
+  readonly VITE_PUBLIC_USDC_FAUCET_ADDRESS?: string;
 }
 
 interface ImportMeta {

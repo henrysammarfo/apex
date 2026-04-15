@@ -5,7 +5,7 @@
  *
  * Usage:
  *   npx hardhat run scripts/deploy.cjs --network hashkeyTestnet
- *   DEPLOY_MODE=usdc_only npx hardhat run scripts/deploy.cjs --network hashkeyTestnet
+ *   (PowerShell) $env:DEPLOY_MODE="usdc_only"; npx hardhat run scripts/deploy.cjs --network hashkeyTestnet
  *
  * Env:
  *   PRIVATE_KEY
@@ -56,8 +56,7 @@ async function main() {
   const owner = deployer.address;
   const agentAddr = process.env.APEX_AGENT_ADDRESS || owner;
   const seed = process.env.SEED_VAULT !== "0";
-  const cliUsdcOnly = process.argv.includes("--usdc-only");
-  const mode = (process.env.DEPLOY_MODE || (cliUsdcOnly ? "usdc_only" : "full")).toLowerCase();
+  const mode = (process.env.DEPLOY_MODE || "full").toLowerCase();
 
   console.log("Deployer:", owner);
   console.log("Agent:", agentAddr);

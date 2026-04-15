@@ -4,6 +4,12 @@ import { Link } from 'react-router-dom';
 const Faucet = () => {
   const faucetUrl =
     (import.meta.env.VITE_PUBLIC_USDC_FAUCET_URL as string | undefined)?.trim() || '#';
+  const tokenAddress =
+    (import.meta.env.VITE_PUBLIC_USDC_TOKEN_ADDRESS as string | undefined)?.trim() ||
+    '0x1d82f5Da580b43b708617A8947Eeab0D38152077';
+  const faucetAddress =
+    (import.meta.env.VITE_PUBLIC_USDC_FAUCET_ADDRESS as string | undefined)?.trim() ||
+    '0x355880a1b0848eB0e7064A22F365a68E30AdC7D7';
 
   return (
     <div className="min-h-screen bg-background text-foreground px-6 md:px-10 py-10">
@@ -43,6 +49,10 @@ const Faucet = () => {
             End-users only need testnet USDC + HSK gas. APEX mock RWA tokens are used inside vault operations for live
             autonomous portfolio behavior.
           </p>
+          <div className="mt-3 space-y-1">
+            <p className="font-mono text-xs break-all">USDC Token: {tokenAddress}</p>
+            <p className="font-mono text-xs break-all">USDC Faucet: {faucetAddress}</p>
+          </div>
         </div>
 
         <Link to="/" className="text-sm text-primary hover:underline">
