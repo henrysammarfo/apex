@@ -25,7 +25,7 @@ import { Button } from '@/components/ui/button';
 import { VaultLiveCard } from '@/components/VaultLiveCard';
 import { useQuery } from '@tanstack/react-query';
 import { fetchAgentLogs, fetchDecisions } from '@/lib/liveOps';
-import { useAccount, useReadContract } from 'wagmi';
+import { useAccount, useReadContract, useReadContracts } from 'wagmi';
 import { hashKeyTestnet } from '@/lib/hashkeyChain';
 import { portfolioVaultReadAbi } from '@/lib/vaultAbi';
 
@@ -83,6 +83,40 @@ const Dashboard = () => {
     chainId: hashKeyTestnet.id,
     query: { enabled: Boolean(vaultAddress) && isConnected },
   });
+  const liveTokens = (liveAlloc?.[0] as readonly `0x${string}`[] | undefined) ?? [];
+  const { data: liveTokenMeta } = useReadContracts({
+    contracts: liveTokens.flatMap((token) => [
+      {
+        address: token,
+        abi: [
+          {
+            type: 'function',
+            name: 'symbol',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [{ name: '', type: 'string' }],
+          },
+        ] as const,
+        functionName: 'symbol',
+        chainId: hashKeyTestnet.id,
+      },
+      {
+        address: token,
+        abi: [
+          {
+            type: 'function',
+            name: 'name',
+            stateMutability: 'view',
+            inputs: [],
+            outputs: [{ name: '', type: 'string' }],
+          },
+        ] as const,
+        functionName: 'name',
+        chainId: hashKeyTestnet.id,
+      },
+    ]),
+    query: { enabled: liveTokens.length > 0 },
+  });
 
   const decisions24h = (liveDecisions ?? []).filter((d) => {
     const ts = new Date(d.executed_at).getTime();
@@ -103,8 +137,8 @@ const Dashboard = () => {
   const holdings =
     liveAlloc && Array.isArray(liveAlloc[0]) && Array.isArray(liveAlloc[1]) && liveAlloc[0].length > 0
       ? (liveAlloc[0] as readonly `0x${string}`[]).map((token, i) => ({
-          asset: `Token ${token.slice(0, 6)}...${token.slice(-4)}`,
-          ticker: token.slice(0, 6),
+          asset: (liveTokenMeta?.[i * 2 + 1]?.result as string | undefined) ?? `Token ${token.slice(0, 6)}...${token.slice(-4)}`,
+          ticker: (liveTokenMeta?.[i * 2]?.result as string | undefined) ?? token.slice(0, 6),
           allocation: Number((liveAlloc[1] as readonly bigint[])[i] ?? 0n) / 100,
           value: 'On-chain',
           apy: 'Live',

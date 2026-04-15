@@ -235,6 +235,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         },
       },
     });
+
+    // If email already exists, allow linking by authenticating that user.
+    if (error && /already registered|already been registered|User already registered/i.test(error.message)) {
+      const signInRes = await supabase.auth.signInWithPassword({ email, password });
+      if (signInRes.error) return { error: signInRes.error.message };
+      if (signInRes.data.user?.id) {
+        await linkWalletToAuthUser(address, signInRes.data.user.id);
+      }
+      return { message: 'Email account linked to wallet successfully.' };
+    }
+
     if (error) return { error: error.message };
 
     if (data.user?.id) {

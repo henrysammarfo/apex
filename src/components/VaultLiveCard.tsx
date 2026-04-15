@@ -1,4 +1,4 @@
-import { useAccount, useReadContract } from "wagmi";
+import { useAccount, useReadContract, useReadContracts } from "wagmi";
 import { hashKeyTestnet } from "@/lib/hashkeyChain";
 import { portfolioVaultReadAbi } from "@/lib/vaultAbi";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -80,10 +80,47 @@ export function VaultLiveCard() {
   }
 
   const [tokens, pctBps] = data ?? [[], []];
-  const rows = (tokens as readonly `0x${string}`[]).map((t, i) => ({
+  const tokenList = tokens as readonly `0x${string}`[];
+  const rows = tokenList.map((t, i) => ({
     token: t,
     pct: Number(pctBps[i] ?? 0n) / 100,
   }));
+
+  const { data: metadata } = useReadContracts({
+    contracts: tokenList.flatMap((token) => [
+      {
+        address: token,
+        abi: [
+          {
+            type: "function",
+            name: "symbol",
+            stateMutability: "view",
+            inputs: [],
+            outputs: [{ name: "", type: "string" }],
+          },
+        ] as const,
+        functionName: "symbol",
+        chainId: hashKeyTestnet.id,
+      },
+      {
+        address: token,
+        abi: [
+          {
+            type: "function",
+            name: "name",
+            stateMutability: "view",
+            inputs: [],
+            outputs: [{ name: "", type: "string" }],
+          },
+        ] as const,
+        functionName: "name",
+        chainId: hashKeyTestnet.id,
+      },
+    ]),
+    query: {
+      enabled: tokenList.length > 0,
+    },
+  });
 
   return (
     <Card>
@@ -97,7 +134,17 @@ export function VaultLiveCard() {
         ) : (
           rows.map((r) => (
             <div key={r.token} className="flex justify-between text-xs font-inter">
-              <span className="font-mono text-muted-foreground">{r.token.slice(0, 10)}…</span>
+              <span className="text-muted-foreground">
+                {(() => {
+                  const idx = tokenList.indexOf(r.token);
+                  const symbol = metadata?.[idx * 2]?.result as string | undefined;
+                  const name = metadata?.[idx * 2 + 1]?.result as string | undefined;
+                  if (symbol || name) {
+                    return `${symbol ?? "TOKEN"}${name ? ` (${name})` : ""}`;
+                  }
+                  return `${r.token.slice(0, 10)}…`;
+                })()}
+              </span>
               <span className="font-medium">{r.pct.toFixed(2)}%</span>
             </div>
           ))

@@ -6,7 +6,7 @@ const NAV_LINKS = [
   { label: 'AGENTS', href: '#agents' },
   { label: 'ARCHITECTURE', href: '#architecture' },
   { label: 'ECOSYSTEM', href: '#ecosystem' },
-  { label: 'FAUCET', href: '/docs/quick-start', isRoute: true },
+  { label: 'FAUCET', href: '/faucet', isRoute: true },
   { label: 'DOCS', href: '/docs', isRoute: true },
 ];
 
