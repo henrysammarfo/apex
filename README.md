@@ -130,6 +130,12 @@ npm run smoke:all
 npm run dev
 ```
 
+USDC-only deploy (without redeploying other contracts):
+
+```bash
+npm run contracts:deploy:usdc:testnet
+```
+
 If you want autonomous backend loop running locally in parallel:
 
 ```bash

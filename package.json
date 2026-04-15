@@ -18,6 +18,7 @@
     "contracts:test": "hardhat test",
     "smoke:all": "npm run contracts:compile && npm run contracts:test && node agent/smoke.mjs",
     "contracts:deploy:testnet": "hardhat run scripts/deploy.cjs --network hashkeyTestnet",
+    "contracts:deploy:usdc:testnet": "hardhat run scripts/deploy.cjs --network hashkeyTestnet --usdc-only",
     "agent:decide": "node agent/decisionAgent.mjs",
     "agent:monitor": "node agent/monitorAgent.mjs",
     "agent:pipeline": "node agent/pipeline.mjs",

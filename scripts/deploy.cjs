@@ -1,11 +1,17 @@
 /**
- * Deploy MockRWA x3 (fixed supply), DemoFaucet24h x3, PortfolioVault, DecisionLog, AgentRegistry,
- * ApexIdentityRegistry, ApexSettlementRouter.
+ * Deploy modes:
+ * - Full stack (default): MockRWA x3 + faucets + vault + registry + rails
+ * - USDC only: one fixed-supply mock USDC + 24h faucet
  *
  * Usage:
  *   npx hardhat run scripts/deploy.cjs --network hashkeyTestnet
+ *   DEPLOY_MODE=usdc_only npx hardhat run scripts/deploy.cjs --network hashkeyTestnet
  *
- * Env: PRIVATE_KEY, optional APEX_AGENT_ADDRESS (defaults to deployer), optional SEED_VAULT=1
+ * Env:
+ *   PRIVATE_KEY
+ *   optional APEX_AGENT_ADDRESS (defaults to deployer)
+ *   optional SEED_VAULT=1
+ *   optional DEPLOY_MODE=usdc_only
  */
 const hre = require("hardhat");
 
@@ -31,14 +37,36 @@ async function deployTokenAndFaucet(deployer, symbolName, symbol) {
   return { token, tokenAddr, faucet, faucetAddr };
 }
 
+async function deployUsdcOnly(deployer) {
+  const usdcName = process.env.USDC_NAME || "Mock Testnet USDC";
+  const usdcSymbol = process.env.USDC_SYMBOL || "mUSDC";
+  const usdc = await deployTokenAndFaucet(deployer, usdcName, usdcSymbol);
+
+  console.log("Mock USDC:", usdc.tokenAddr);
+  console.log("Faucet24h USDC:", usdc.faucetAddr);
+  console.log(`USDC fixed supply: ${MAX_SUPPLY / WAD} (whole tokens); faucet pool: ${FAUCET_RESERVE / WAD}; claim / 24h: ${CLAIM_PER_24H / WAD}.`);
+  console.log("\nAdd to .env / .env.local:");
+  console.log(`MOCK_USDC=${usdc.tokenAddr}`);
+  console.log(`FAUCET_USDC=${usdc.faucetAddr}`);
+  return;
+}
+
 async function main() {
   const [deployer] = await hre.ethers.getSigners();
   const owner = deployer.address;
   const agentAddr = process.env.APEX_AGENT_ADDRESS || owner;
   const seed = process.env.SEED_VAULT !== "0";
+  const cliUsdcOnly = process.argv.includes("--usdc-only");
+  const mode = (process.env.DEPLOY_MODE || (cliUsdcOnly ? "usdc_only" : "full")).toLowerCase();
 
   console.log("Deployer:", owner);
   console.log("Agent:", agentAddr);
+  console.log("Deploy mode:", mode);
+
+  if (mode === "usdc_only") {
+    await deployUsdcOnly(deployer);
+    return;
+  }
 
   const silver = await deployTokenAndFaucet(deployer, "Mock Silver RWA", "mSILV");
   const mmf = await deployTokenAndFaucet(deployer, "Mock MMF RWA", "mMMF");
