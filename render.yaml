@@ -1,0 +1,9 @@
+# Render Blueprint: long-running APEX agent pipeline.
+# After first deploy, set Environment variables in the Render dashboard (secrets).
+# Do not put PRIVATE_KEY or API keys in this file.
+services:
+  - type: worker
+    name: apex-pipeline
+    runtime: node
+    buildCommand: npm install
+    startCommand: npm run agent:pipeline
